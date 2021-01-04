@@ -30,6 +30,18 @@ More popularity a songs, the more potentential there is to generate revenue per 
 
 ### Exploratory Data Analysis
 
+**1. How have the characteristics of music changed over the last ten years?**
+
+
+**2. Are they any correlations between the variables?**
+
+
+**3. What does it take to be in the top 200?**
+
+
+**4. What defines the popular genres suggested by BBC?**
+
+
 ### Hypothesis 
 
 H0: The characteristics (instrumentalness, acousticness, liveness, dancability, energy, loudness, speechness, valence, tempo) of the genres “K-pop”, “Hip Hop”, and “Electronic Dance Music” are not statistically significantly related to song popularity score.*
