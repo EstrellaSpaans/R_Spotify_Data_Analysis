@@ -30,14 +30,26 @@ More popularity a songs, the more potentential there is to generate revenue per 
 
 ### Exploratory Data Analysis
 
-**1. How have the characteristics of music changed over the last ten years?**
+**1. How have the characteristics of music changed over the last ten years?** (Line-Chart)
+- There are two characteristics: *Speechiness* and *Danceability*, that are increasing over the last decade.
+- The *Instrumentalness* has a clear trend of decreasing.
+- There are four characteristics that are fluctuating with changes of 0.1.
+    - Both *Energy* and *Valence* show a positive change after 2016 to 2017.
+    - *Acousticness* and *Energy* have a trend showing a significant decrease within the range of 0.1 change during the year of 2018 to 2019.
+- *Liveness* is the only characteristic to be stable over the past decade.
 
+**2. Are they any correlations between the variables?** (Pearson Correlation Matrix)
+- A strong positive correlation between *Energy* and *Loudness* (+0.78)
+- A moderate positive correlation between Danceability and Valence (+0.56)
+- A moderate positive correlation between Popularity and Loudness (+0.46)
+- A strong negative correlation between Acousticness and Energy (-0.75)
+- A moderate negative correlation between Acousticness and Loudness (-0.56)
+- A moderate negative correlation between Popularity and Acousticness (-0.57)
 
-**2. Are they any correlations between the variables?**
-
-
-**3. What does it take to be in the top 200?**
-
+**3. What does it take to be in the top 200?** (Simple Linear regression, Density plot by Music genres)
+- There are quite some variations in the top200 popularity score. With a threshold of a popularity score of 85, there are 41 outliers, which is approximately 20.5% of all data points.
+- approximately 18% of all streaming numbers account for the popularity score (adjusted r-squared) 
+- Common characteristics for the top 200 songs include low acousticness score, a medium to high loudness score, a low speechness score, a low liveness score, and a medium to high danceability score
 
 **4. What defines the popular genres suggested by BBC?**
 
