@@ -23,6 +23,9 @@ Spotify, one of the streaming platforms, has to deal with their stakeholders’ 
 
 ![Spotify's Business Model](https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png =250x)
 
+<img src="https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png" alt="drawing" width="200"/>
+
+
 The real question is whether Spotify could add more value for (new) artists without changing their current business model and cost structure. That is why we wanted to know whether **the popularity of a song can be predicted based on song characteristics**. 
 
 More popularity a songs, the more potentential there is to generate revenue per stream. A " popularity recipe " would help Spotify establish a better relationship with record labels and artists and listeners who want to have likable music.
