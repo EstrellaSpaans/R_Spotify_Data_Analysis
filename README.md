@@ -21,7 +21,7 @@ However, Artist upset with the current climate of streaming platforms. They clai
 
 Spotify, one of the streaming platforms, has to deal with their stakeholders’ dissatisfaction (artists), as they are interested in building good relationships. Without artists and listeners, the business model would fail.
 
-<img src="https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png" alt="drawing" width="500"/>
+<img src="https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png" alt="drawing" width="650"/>
 
 
 The real question is whether Spotify could add more value for (new) artists without changing their current business model and cost structure. That is why we wanted to know whether **the popularity of a song can be predicted based on song characteristics**. 
