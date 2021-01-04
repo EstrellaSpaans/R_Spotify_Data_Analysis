@@ -12,11 +12,20 @@ Additional Data was gathered through Spotify's Open Source Developers Program.
 
 ---
 ### Framing the Problem
-
-The music industry is a booming business. In 2019, the total revenue of the music industry amounted to 21.5 billion U.S. dollars and is predicted to grow to 36.7 billion U.S. dollars by 2025 [(IFPI, 2020;](https://www.ifpi.org/wp-content/uploads/2020/07/Global_Music_Report-the_Industry_in_2019-en.pdf) [Koronios, 2020)](https://my-ibisworld-com.hult.idm.oclc.org/gl/en/industry/q8712-gl/industry-performance).
-
 With 341 million paid subscribers, streaming accounted for 56 percent of the total music industry revenues in 2019. The trend started approximately in 2009 and has been growing since. The industry segment is forecasted to reach 1.3 billion users by 2030, of which 21% will be streaming music using their mobile phones (IFPI, 2020; Goldman Sachs, 2020).
 
+However, Artist upset with the current climate of streaming platforms. They claim that; 
+- streaming platforms are destroying album sales. T
+- can generate more revenue from selling albums (digitally or physically)
+- revenue per stream is incredibaly low (on average $1.70)
+
+Spotify, one of the streaming platforms, has to deal with their stakeholders’ dissatisfaction (artists), as they are interested in building good relationships. Without artists and listeners, the business model would fail.
+
+![Spotify's Business Model](https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png){width=90%}
+
+The real question is whether Spotify could add more value for (new) artists without changing their current business model and cost structure. That is why we wanted to know whether **the popularity of a song can be predicted based on song characteristics**. 
+
+More popularity a songs, the more potentential there is to generate revenue per stream. A " popularity recipe " would help Spotify establish a better relationship with record labels and artists and listeners who want to have likable music.
 
 ### Exploratory Data Analysis
 
