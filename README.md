@@ -7,6 +7,9 @@ This project focussed on applying finding a problem, creating a hypothesis, coll
 
 Collaborator: [Ruisheng Wang](https://github.com/rishonwang) 
 
+The data used was downloaded on [Kaggle](https://www.kaggle.com/yamaerenay/spotify-dataset-19212020-160k-tracks) and was updated on the November 25, 2020.
+Additional Data was gathered through Spotify's Open Source Developers Program.
+
 ---
 ### Framing the Problem
 
