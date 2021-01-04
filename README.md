@@ -73,4 +73,21 @@ The models were then tested again with the dataset query_data, to discover only 
 </table><table cellspacing="0" class="table table-condensed"><thead><tr><th align="right" style="text-align: right; max-width: 90px; min-width: 90px;"><div class="pagedtable-header-name">r.squared</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 130px; min-width: 130px;"><div class="pagedtable-header-name">adj.r.squared</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 80px; min-width: 80px;"><div class="pagedtable-header-name">sigma</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 110px; min-width: 110px;"><div class="pagedtable-header-name">f.statistic</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 140px; min-width: 140px;"><div class="pagedtable-header-name">f.stat.p_value</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="left" style="text-align: left; max-width: 120px; min-width: 120px;"><div class="pagedtable-header-name">Coefficients</div><div class="pagedtable-header-type">&lt;fctr&gt;</div></th><th style="cursor: pointer;vertical-align: middle;min-width: 5px;width: 5px;"><div style="border-top: 5px solid transparent;border-bottom: 5px solid transparent;border-left: 5px solid;"></div></th></tr></thead><tbody><tr class="odd"><td align="right" style="text-align: right; max-width: 90px; min-width: 90px;">0.2061116</td><td align="right" style="text-align: right; max-width: 130px; min-width: 130px;">0.1982253</td><td align="right" style="text-align: right; max-width: 80px; min-width: 80px;">11.00121</td><td align="right" style="text-align: right; max-width: 110px; min-width: 110px;">26.13537</td><td align="right" style="text-align: right; max-width: 140px; min-width: 140px;">4.66821e-15</td><td align="left" style="text-align: left; max-width: 120px; min-width: 120px;">Accepted</td><td></td></tr></tbody></table>
 
 
+| R.squared  | adj.r.squared      |  Cool |
+|------------|:-------------:|------:|
+|  0.2061116 |  left-aligned | $1600 |
+|  col 2 is  |    centered   |   $12 |
+|  col 3 is  | right-aligned |    $1 |
 
+.squared
+<dbl>
+adj.r.squared
+<dbl>
+sigma
+<dbl>
+f.statistic
+<dbl>
+f.stat.p_value
+<dbl>
+Coefficients
+<fctr>
