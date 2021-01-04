@@ -70,10 +70,22 @@ The models were then tested again with the dataset query_data, to discover only 
 - Model 11 has more characteristics that influence the popularity score for hip hop; the only characteristic that is not included is speechiness.
 
 #### Best Model
-</table><table cellspacing="0" class="table table-condensed"><thead><tr><th align="right" style="text-align: right; max-width: 90px; min-width: 90px;"><div class="pagedtable-header-name">r.squared</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 130px; min-width: 130px;"><div class="pagedtable-header-name">adj.r.squared</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 80px; min-width: 80px;"><div class="pagedtable-header-name">sigma</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 110px; min-width: 110px;"><div class="pagedtable-header-name">f.statistic</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="right" style="text-align: right; max-width: 140px; min-width: 140px;"><div class="pagedtable-header-name">f.stat.p_value</div><div class="pagedtable-header-type">&lt;dbl&gt;</div></th><th align="left" style="text-align: left; max-width: 120px; min-width: 120px;"><div class="pagedtable-header-name">Coefficients</div><div class="pagedtable-header-type">&lt;fctr&gt;</div></th><th style="cursor: pointer;vertical-align: middle;min-width: 5px;width: 5px;"><div style="border-top: 5px solid transparent;border-bottom: 5px solid transparent;border-left: 5px solid;"></div></th></tr></thead><tbody><tr class="odd"><td align="right" style="text-align: right; max-width: 90px; min-width: 90px;">0.2061116</td><td align="right" style="text-align: right; max-width: 130px; min-width: 130px;">0.1982253</td><td align="right" style="text-align: right; max-width: 80px; min-width: 80px;">11.00121</td><td align="right" style="text-align: right; max-width: 110px; min-width: 110px;">26.13537</td><td align="right" style="text-align: right; max-width: 140px; min-width: 140px;">4.66821e-15</td><td align="left" style="text-align: left; max-width: 120px; min-width: 120px;">Accepted</td><td></td></tr></tbody></table>
-
+As a final test, model 5 was rerun with a test data set to validate this model’s accuracy. 
 
 | R.squared  | adj.r.squared |   sigma  |f.statistic | f.stat.p_value | Coefficients | Formula       |
 |------------| -------------:|---------:|-----------:|---------------:|-------------:| -------------:|
 |  0.2061116 |  0.1982253    | 11.00121 | 26.13537	 | 4.66821e-15    |	 Accepted    | 	popularity ~ danceability + energy + loudness |
 
+This model suggest the following equation: *Popularity Score =  74.98355 + ( 19.35758  * danceability ) + ( -20.35282 * energy ) + ( 2.066039 * loudness )*
+
+Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected; therefore, the alternative hypothesis gets rejected. There are no models that include all song characteristics for K-pop, Electronic Dance Music, and Hip Hop. The percentage of variance that can be explained in these models’ popularity score is too small to be accurate.
+
+### Insights
+- Popular music genres do no necessarily have similar characteristics.
+- There are other factors that might influence the popularity score.
+- Spotify can use its data to identify trends rather than predicting the popularity score.
+
+### Further Research 
+As there are no strong linear patterns for this dataset, which can be seen in the scatterplots and correlation matrix, there are plenty of possibilities to move further with this research. Different genres could be analyzed to see whether more vital models can be created to predict the popularity score.
+
+Another possibility is to apply a transformation to the popularity score or song characteristics to make the data more fitted to linear regression. There also might be better predictive (machine learning) models that fit the data better compared to a linear model. These might give us different insights.
