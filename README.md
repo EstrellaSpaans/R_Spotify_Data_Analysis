@@ -21,9 +21,6 @@ However, Artist upset with the current climate of streaming platforms. They clai
 
 Spotify, one of the streaming platforms, has to deal with their stakeholders’ dissatisfaction (artists), as they are interested in building good relationships. Without artists and listeners, the business model would fail.
 
-<img src="https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png" alt="drawing" width="650"/>
-
-
 The real question is whether Spotify could add more value for (new) artists without changing their current business model and cost structure. That is why we wanted to know whether **the popularity of a song can be predicted based on song characteristics**. 
 
 More popularity a songs, the more potentential there is to generate revenue per stream. A " popularity recipe " would help Spotify establish a better relationship with record labels and artists and listeners who want to have likable music.
@@ -39,24 +36,45 @@ More popularity a songs, the more potentential there is to generate revenue per 
 - *Liveness* is the only characteristic to be stable over the past decade.
 
 **2. Are they any correlations between the variables?** (Pearson Correlation Matrix)
-- A strong positive correlation between *Energy* and *Loudness* (+0.78)
-- A moderate positive correlation between Danceability and Valence (+0.56)
-- A moderate positive correlation between Popularity and Loudness (+0.46)
-- A strong negative correlation between Acousticness and Energy (-0.75)
-- A moderate negative correlation between Acousticness and Loudness (-0.56)
-- A moderate negative correlation between Popularity and Acousticness (-0.57)
+- A strong positive correlation between *Energy* and *Loudness* (+0.78).
+- A moderate positive correlation between Danceability and Valence (+0.56).
+- A moderate positive correlation between Popularity and Loudness (+0.46).
+- A strong negative correlation between Acousticness and Energy (-0.75).
+- A moderate negative correlation between Acousticness and Loudness (-0.56).
+- A moderate negative correlation between Popularity and Acousticness (-0.57).
 
 **3. What does it take to be in the top 200?** (Simple Linear regression, Density plot by Music genres)
 - There are quite some variations in the top200 popularity score. With a threshold of a popularity score of 85, there are 41 outliers, which is approximately 20.5% of all data points.
-- approximately 18% of all streaming numbers account for the popularity score (adjusted r-squared) 
-- Common characteristics for the top 200 songs include low acousticness score, a medium to high loudness score, a low speechness score, a low liveness score, and a medium to high danceability score
+- approximately 18% of all streaming numbers account for the popularity score (adjusted r-squared). 
+- Common characteristics for the top 200 songs include low acousticness score, a medium to high loudness score, a low speechness score, a low liveness score, and a medium to high danceability score.
 
 **4. What defines the popular genres suggested by BBC?**
-
+- Genres K-pop, Electronic Dance Music (EDM), and Hip Hop are in general more popular than African and Latin Pop. 
+- Shared characteristics for these genres include ; Energy, Danceability, Valence, Loudness
 
 ### Hypothesis 
 
 H0: The characteristics (instrumentalness, acousticness, liveness, dancability, energy, loudness, speechness, valence, tempo) of the genres “K-pop”, “Hip Hop”, and “Electronic Dance Music” are not statistically significantly related to song popularity score.*
 
 HA: The characteristics (acousticness, liveness, dancability, energy, loudness, speechness, valence, tempo) of the genres “K-pop”, “Hip Hop”, and “Electronic Dance Music” are statistically significantly related to song popularity score.
+
+### Linear Modelling 
+- 60% of the data goes into a training set, fitting different models. 
+- 20% of the data is used into a query set to compare models *(query_data)*.
+- 20% of the data was reserved to test the finalized model *(test_data)*.
+
+**Our model should have a confidence level of 95%, which indicates that p-values should be smaller than 0.05.**
+
+The data does not have any clear linear patterns with the popularity score, indicating that the relationship between our dependent and independent variables is mostly non-linear. This has to be taken into account when fitting the best model.
+
+The approach that was taken was to test all possible combinations of all the characteristics. This had let to the creation of 511 different combinations. For all of these combinations, it was needed to test four different datasets: the training data and the training data set split by each genre: 
+
+- *Training Data Set:* Model 1, Model 2, Model 3
+- *EDM Training Data:* Model 4, Model 5, Model 6
+- *K-Pop Training Data:* Model 7, Model 8, Model 9
+- *Hip Hop Training Data:* Model 10, Model 11, Model 12
+
+The models were then tested again with the dataset query_data. 
+
+
 
