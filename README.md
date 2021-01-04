@@ -70,7 +70,7 @@ The models were then tested again with the dataset query_data, to discover only 
 - Model 11 has more characteristics that influence the popularity score for hip hop; the only characteristic that is not included is speechiness.
 
 #### Best Model
-As a final test, model 5 was rerun with a test data set to validate this model’s accuracy. 
+As a final test, model 5 was rerun with a test data set to validate this model’s accuracy. This model had better statistics compared to model 11.
 
 | R.squared  | adj.r.squared |   sigma  |f.statistic | f.stat.p_value | Coefficients | Formula       |
 |------------| -------------:|---------:|-----------:|---------------:|-------------:| -------------:|
