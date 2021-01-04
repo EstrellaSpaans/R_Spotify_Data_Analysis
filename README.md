@@ -15,13 +15,13 @@ Additional Data was gathered through Spotify's Open Source Developers Program.
 With 341 million paid subscribers, streaming accounted for 56 percent of the total music industry revenues in 2019. The trend started approximately in 2009 and has been growing since. The industry segment is forecasted to reach 1.3 billion users by 2030, of which 21% will be streaming music using their mobile phones (IFPI, 2020; Goldman Sachs, 2020).
 
 However, Artist upset with the current climate of streaming platforms. They claim that; 
-- streaming platforms are destroying album sales. T
+- streaming platforms are destroying album sales. 
 - can generate more revenue from selling albums (digitally or physically)
 - revenue per stream is incredibaly low (on average $1.70)
 
 Spotify, one of the streaming platforms, has to deal with their stakeholders’ dissatisfaction (artists), as they are interested in building good relationships. Without artists and listeners, the business model would fail.
 
-![Spotify's Business Model](https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png){width=90%}
+![Spotify's Business Model](https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png =250x)
 
 The real question is whether Spotify could add more value for (new) artists without changing their current business model and cost structure. That is why we wanted to know whether **the popularity of a song can be predicted based on song characteristics**. 
 
