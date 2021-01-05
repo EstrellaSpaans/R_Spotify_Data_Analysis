@@ -1,0 +1,1758 @@
+---
+title: "Creating Value for Music Artists"
+subtitle: Exploring Spotify's Song Data
+output:
+ md_document:
+    variant: markdown_github
+---
+```{r Load Packages, message=FALSE, warning=FALSE, include=FALSE}
+#NOTE: REMOVE # TO INSTALL PACKAGES
+#install.packages("tidyverse")
+#install.packages("data.table")
+#install.packages("httr")
+#install.packages("stringr")
+#install.packages("corrplot")
+#install.packages("broom")
+#install.packages("gridExtra")
+library(tidyverse)
+library(data.table)
+library(httr)
+library(stringr)
+library(corrplot)
+library(broom)
+library(gridExtra)
+```
+
+```{r Setting Up Spotify Connection with Open Source, message=FALSE, warning=FALSE, include=FALSE}
+#Setting up Spotify open source connection
+  #Connecting with open source through developer platform, connecting it to domain.
+
+clientID = '2f601d78715f4c8ba983ee926e42ab10'
+secret = '84f831e38ea34cb4bf3955e448667332'
+response = POST(
+  'https://accounts.spotify.com/api/token',
+  accept_json(),
+  authenticate(clientID, secret),
+  body = list(grant_type = 'client_credentials'),
+  encode = 'form',
+  verbose()
+)
+mytoken = content(response)$access_token
+HeaderValue = paste0('Bearer ', mytoken)
+```
+
+# 1. Framing the Business Problem
+## 1.1 An Introduction To The Music Industry
+<font size = "3"> 
+
+The music industry is a booming business. In 2019, the total revenue of the music industry amounted to 21.5 billion U.S. dollars and is predicted to grow to 36.7 billion U.S. dollars by 2025 [(IFPI, 2020;](https://www.ifpi.org/wp-content/uploads/2020/07/Global_Music_Report-the_Industry_in_2019-en.pdf) [Koronios, 2020)](https://my-ibisworld-com.hult.idm.oclc.org/gl/en/industry/q8712-gl/industry-performance).  
+
+**The industry has changed over the last decade because of fast digitalization;** 
+
+1. **The internet has changed the way people connect with the music they love.** In one massive disruption, physical products such as vinyl, CDs, and MP3-players have become redundant. Streaming services have made a virtually limitless amount of music available to you anywhere, anytime at a single monthly price [(Rubin, 2019)](https://www.insider.com/how-music-industry-changed-2010s-decade-2019-12).
+
+2. **A positive effect of the internet is the rise of new music genres**. Over the last decade, international artists have achieved popularity all over the world. Examples of new genres include K-Pop, Latin Pop, and Electronic Dance Music [(Haider, 2019)](https://www.bbc.com/culture/article/20191211-the-key-music-trends-of-the-past-decade).
+
+3. **The rise of the internet made it possible for people to purchase physical music products and upload them illegally for free onto the web.** Music piracy has fallen dramatically due to stricter regulations and prevention methods. This is partially due to the rise of streaming platforms as they offer a wide range of music collections; therefore, the need for unverified sources slowly disappeared [(Shepherd, 2018)](https://www.independent.co.uk/arts-entertainment/music/news/music-piracy-uk-spotify-tidal-streaming-services-yougov-survey-a8474436.html).
+
+4. **The barriers in the music industry are classified as medium-low.** Initially, the barriers to enter the music industry were way higher due to the production costs of physical products. Now with the changing climate, production costs have decreased due to better production software. A few record labels initially dominated the market; however, 3rd-party publishing websites have made it easier for new artists to post their music [(Koronios, 2020)](https://my-ibisworld-com.hult.idm.oclc.org/gl/en/industry/q8712-gl/industry-performance).
+
+With 341 million paid subscribers, streaming accounted for 56 percent of the total music industry revenues in 2019. The trend started approximately in 2009 and has been growing since. The industry segment is forecasted to reach 1.3 billion users by 2030, of which 21% will be streaming music using their mobile phones [(IFPI, 2020; ](https://www.ifpi.org/wp-content/uploads/2020/07/Global_Music_Report-the_Industry_in_2019-en.pdf) [Goldman Sachs, 2020) ](https://www.goldmansachs.com/insights/pages/infographics/music-in-the-air-2020/index.html?cid=sch-pd-google-musicstreaming2020-searchad-202010-----&mkwid=sr4TYvEKR_dc_pcrid_474705386545_pkw_music%20industry_pmt_p_pdv_c_slid__pgrid_110925929906_ptaid_kwd-11481931_&gclid=Cj0KCQiAtqL-BRC0ARIsAF4K3WEA7GzOJOdCXUWDC-rUWEm6Mr6TzYtD-JneaJmgri-k9nzSHZAmfx4aAhCFEALw_wcB).
+</font>
+
+```{r Industry Revenue by Category Plot, echo=FALSE, message=FALSE, warning=FALSE}
+# Read the csv file
+music_revenue <-
+  read.csv(
+    "https://98f21455-87d0-45ec-8569-85946ffeb5fe.filesusr.com/ugd/3fe52d_3af6b11377b94739a6d2d3d8dd91a160.csv?dn=Revenue_Category.csv"
+  )
+
+#Select "music_revenue.csv" in case link does not work (remove #)
+  #read.csv(file.choose(), header=TRUE) 
+
+# Pivot the variables and make the geo graph
+music_revenue_categories <- music_revenue %>%
+  pivot_longer(
+    c(Physical, Performances, Downloads, Streaming, Synchronisation), # Transforming the plot in order to make stacked bar chart
+    names_to = "Category", #Assign to new column
+    values_to = "values" #Assign to new column
+  ) %>%
+  ggplot(., aes(x = X, y = values)) + #plot the data
+  geom_col(aes(fill = Category)) + #filling the color by revenue category
+  xlab("") + ylab("Revenue (US$ Billions)") #adjusting axis-labels 
+
+music_revenue_categories #showing the plot
+```
+
+*Figure 1: Global Recorded Music Industry Revenues Changes (IFPI, 2020)*
+
+## 1.2 Problems in the Music Industry
+<font size = "3"> 
+Even though streaming services have created a new source of obtaining music, it also led to negative effects on the market. 
+
+1. **There has been a decline in physical purchases.** Looking at figure 1, it can be seen that the sales generated from physical products have declined over the last decade. As there are many streaming predictions, physical products are expected to disappear, driving brick-and-mortar music stores to struggle. In today's current client, most physical product sales are vinyl, driven by '80s and '90s nostalgia [(Aziz, 2019;](https://www.vibe.com/photos/10-ways-music-industry-changes-10-years/abbey-road-studios-opens-its-doors-to-the-public) [Rubin, 2019;](https://www.insider.com/how-music-industry-changed-2010s-decade-2019-12) [Owsinski, 2019)](https://www.forbes.com/sites/bobbyowsinski/2019/07/21/the-music-industrys-physical-product-problems-may-signal-an-upheaval-in-the-making/?sh=61ad48644220).  
+2. **Artist upset with the current climate of streaming platforms.** Big Artists believe that streaming platforms are destroying album sales. They believe that they generally generate more revenue from selling albums (digitally or physically). One example is a pop-country artist "Taylor Swift", who deleted her content from Spotify. She quoted: 
+*"Valuable things should be paid for"*, referencing her albums [(Hassan, 2016;](https://www.theverge.com/2017/6/9/15767986/taylor-swift-apple-music-spotify-statements-timeline) [Tiffany, 2017)](https://www.theverge.com/2017/6/9/15767986/taylor-swift-apple-music-spotify-statements-timeline). This is especially a problem for new artists. Record labels have great resources helping the new artist to achieve success. Artists trying to get discovered through the internet without big record labels rely on the revenues generated from online views or streams, which is not sustainable for an income that covers living costs without popularity.</font>  
+<br><br>
+![](https://static.wixstatic.com/media/3fe52d_19f862438a754fe7b7e784ecd73aa0dd~mv2.png){width=50%}
+<br><br>
+*Figure 2: Revenue Streaming Parties and Parties Involved (Goldman Sachs, 2020)*
+<br><br>
+
+## 1.3 The Business Problem 
+<font size = "3"> 
+The problem of getting discovered as well as getting reasonable pay affects new artists in the music industry. The impact is significant, especially during the pandemic, where they are dependent on digital discovery as there cannot be any physical performances [(Brown, 2020;](https://www.theguardian.com/artanddesign/2020/may/14/artists-struggling-to-work-amid-coronavirus-says-rachel-whiteread) [Andor Brodeur, 2020)](https://www.washingtonpost.com/entertainment/music/artists-are-struggling-to-find-inspiration-in-isolation/2020/04/09/ee5e314c-7222-11ea-a9bd-9f8b593300d0_story.html). 
+
+Spotify, one of the streaming platforms, has to deal with their stakeholders' dissatisfaction (artists), as they are interested in building good relationships. The company offers a universal solution that gives music listeners access to millions of songs and other content from artists worldwide. At the same time, they unlock the potential of human creativity—by allowing a million creative artists to live off their art [(Spotify, nd)](https://newsroom.spotify.com/company-info/). Without artists and listeners, the business model would fail. </font> 
+<br>
+
+![](https://static.wixstatic.com/media/3fe52d_65101ca722dd451fbab3f6f76fb66c24~mv2.png){width=90%}
+<br><br>
+*Figure 3: Spotify Business Model (Fox, nd)*
+<br><br>
+<font size = "3"> 
+**The real question is whether Spotify could add more value for (new) artists without changing their current business model and cost structure.**
+
+As seen in figure 3, Spotify gathers data on the users' music tastes and preferences. Part of their platform experience, they use the data to show recommendations through Spotify's preprogrammed playlists, weekly and daily mixes, and radar releases in which new songs get released. The number of streams also determines which songs are the most popular and publish this data on Spotify Charts: the daily top 200 and 50 most viral songs. [(Perez, 2019;](https://techcrunch.com/2019/03/26/spotify-expands-personalization-to-its-programmed-playlists/) [Spotify, 2018;](https://newsroom.spotify.com/2018-11-02/our-spotify-cheat-sheet-4-ways-to-find-your-next-favorite-song/) [Fox, nd)](https://www.garyfox.co/spotify-business-model/).
+
+Artists get paid whenever a user streams a song for at least 30 seconds. This means that the artist's music needs to be attractive enough for the users to play it and like it. The more streams, the more money an artist will receive 
+[(The Planetary Group, 2019)](https://www.planetarygroup.com/do-artists-get-paid-every-time-song-played-spotify/#:~:text=The%20short%20answer%20to%20this,%2C%20as%20we'll%20see).
+
+This has to do with the popularity of the song. The more popular the song will be, the more an artist can earn. Therefore, the artists and music production companies are interested in producing music that goes viral and gets into the top 200 streaming songs. </font> 
+
+## 1.4 Hypothesis 
+<font size = "3"> 
+Songs have different characteristics; each genre has different characteristics. Algorithms can easily determine each of these characteristics. These characteristics include the valence, the acousticness, the danceability, the duration of a song, the energy present, whether it was a clean or explicit file, the instrumentalness, the liveness, the loudness, chord progressions, the speechiness, and the tempo of the song [(Moris, nd;](https://www8.gsb.columbia.edu/articles/projects/what-makes-a-hit/) [Yamaç Eren Ay, 2020)](https://www.kaggle.com/yamaerenay/spotify-dataset-19212020-160k-tracks).
+
+Knowing the following information, the business question would be; 
+
+**"Could a prediction about the popularity of a song be made based on song characteristics?"**
+
+Spotify could check with their data whether a combination of song characteristics influences the popularity of the song. Artists could produce new songs following the right mix of characteristics to gain popularity. More popularity equals more money. This " secret combination recipe" would help Spotify establish a better relationship with record labels and artists and listeners who want to have likable music. 
+
+Therefore, the formulated hypothesis for a predictive analysis focusing on new genres is: 
+<br><br>
+
+*Ho: The characteristics (instrumentalness, acousticness, liveness, dancability, engergy, loudness, speechness, valence, tempo, number of streams) of of new music genres are not statistically significantly related to song popularity score.*
+
+*Ha: The characteristics (instrumentalness, acousticness, liveness, dancability, engergy, loudness, speechness, valence, tempo, number of streams) of new music genres are statistically significantly related to song popularity score.*
+</font> 
+
+# 2. Solving the Problem 
+## 2.1 Data Collection
+<font size = "3"> 
+To solve the problem, data about different songs and their popularity is needed. To answer the business question in this specific project, the data from Spotify will be used: 
+
+* Music characteristics over the year *(data set: years)*
+* Data by genre *(data set: genre)* 
+* Song Information *(data set: songs)*. 
+
+This data was collected from [(Yamaç Eren Ay, 2020)](https://www.kaggle.com/yamaerenay/spotify-dataset-19212020-160k-tracks). The data has been generated through open source web scraping from Spotify's Developers platform. The data contains information from 1971 to 2020 and was updated on November 25, 2020. <br>
+From the data set songs and genres, a data set was generated for the most popular genres *(data set: popular_genres)*
+
+Additional information was gathered through Spotify Chart, a webpage where the company presents the top 200 songs. The date chosen was October 31, 2020, to exclude any holiday-oriented songs that might influence the outcome of our results *(data set: top200)*. Whenever it was needed, more data was gathered through additional open source web scraping [(Spotify AB, 2020;](https://spotifycharts.com/regional) [Spotify, 2020)](https://developer.spotify.com/documentation/web-api/reference/). </font>
+
+
+```{r Importing Datasets, message=FALSE, warning=FALSE, include=FALSE}
+#1. IMPORTING DATASETS
+  # Importing genres data set
+genres <-
+  read.csv(
+    'https://98f21455-87d0-45ec-8569-85946ffeb5fe.filesusr.com/ugd/3fe52d_f3e30b76c3a54bf0b136e1acf81921ad.csv?dn=data_w_genres.csv'
+  )
+
+#Select "data_by_genres.csv" in case link does not work (remove #)
+  #read.csv(file.choose(), header=TRUE) 
+
+  # Importing years data set
+years <-
+  read.csv(
+    'https://98f21455-87d0-45ec-8569-85946ffeb5fe.filesusr.com/ugd/3fe52d_82a6c0af030f485aad660cd207586b34.csv?dn=data_by_year.csv'
+  )
+
+#Select "data_by_year.csv" in case link does not work (remove #)
+  #read.csv(file.choose(), header=TRUE) 
+
+  # Importing songs data set
+songs <-
+  read.csv(
+    'https://98f21455-87d0-45ec-8569-85946ffeb5fe.filesusr.com/ugd/3fe52d_a16641d9064c48e7865982427de793f7.csv?dn=data.csv'
+  )
+
+#Select "data.csv" in case link does not work (remove #)
+  #read.csv(file.choose(), header=TRUE) 
+
+  # Importing top200 data set
+top200 <-
+  read.csv(
+    'https://98f21455-87d0-45ec-8569-85946ffeb5fe.filesusr.com/ugd/3fe52d_b17d3660e6a34f33a7e2623d5e815080.csv?dn=top200-global-daily-2020-10-31.csv',
+    header = TRUE, #header is there
+    skip = 1 #header is not in first row, so skip the first row
+  )
+
+#Select "top200-global-daily-2020-10-31.csv" in case link does not work (remove #)
+  #read.csv(file.choose(), header=TRUE, skip = 1) 
+```
+
+```{r Preparing Dataset, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#2. PREPARING "songs" DATASET
+  #Creating a copy of Genres in order to join with usuable columns
+adjusted_genres <- genres %>%
+  select(artists, genres) 
+
+  #Creating a copy of songs & split the song that have artist collaborations
+song <- songs %>%
+  separate(artists,
+           into = c("artist1", "other.artists"),
+           sep = ",")
+
+  #Removing weird characeristics and vectors within strings.
+song$artist1 <- str_match_all(song[, "artist1"], "[a-z, A-Z]+")
+song$artist1 <- gsub("^c\\(|\\)$", "", song$artist1)
+
+  #Seperating it one more time as is did not do a good job in the first place. Still multiple artists in column
+song <- song %>%
+  separate(artist1,
+           into = c("artist2", "other.artists2"),
+           sep = ",")
+
+ #Removing Unnecessary columns created because of split
+song$other.artists2 <- NULL
+song$other.artists <- NULL
+
+  #Rename Artist column
+song <- song %>%
+  rename(artists = artist2)
+
+  #Joining the genres with the songs based on artists.
+songs <- left_join(song , adjusted_genres, by = "artists")
+
+  #Remove other unnecessary colums 
+songs$key <- NULL
+songs$mode <- NULL
+songs$explicit <- NULL
+
+## 3. PREPARING "top200" DATASET
+  #Splitting the Track ID from the URL
+track_id <-
+  str_split_fixed(top200$URL, 'https://open.spotify.com/track/', 2)
+
+  #Subsetting right column from matrix created. This only contains the track id. 
+track_id <- track_id[, 2]
+
+  #Converting matrix to a vector with values of track id. 
+vector_track_id <- c(track_id)
+
+  #Creating a new column just with the id's and add it to top200
+top200 <- top200 %>%
+  mutate(., Track.Id = vector_track_id)
+
+  #Removing unnessesary columns of urls, as they ar not needed anymore.
+top200[, c('URL')] <- list(NULL)
+
+  #Renaming columns to match with the other data frame (preparation for join)
+top200 <- top200 %>%
+  rename(
+    .,
+    c(
+      "position" = "Position",
+      "track.name" = "Track.Name",
+      "streams" = "Streams",
+      "track.id" = "Track.Id",
+      "artists" = "Artist"
+    )
+  )
+
+  #Changing id to be matching (some ids were outdated)
+top200$track.id[top200$track.id == "7ytR5pFWmSjzHJIeQkgog4"] <-
+  "4Aykm3xrOFSHrAnv80KUhh"
+top200$track.id[top200$track.id == "6thXB4RmajS4oZPNiBAKy0"] <-
+  "3m0y8qLoznUYi73SUBP8GI"
+top200$track.id[top200$track.id == "6OqrJqDMu15AGJHJazg9Nr"] <-
+  "463CkQjx2Zk1yXoBuierM9"
+top200$track.id[top200$track.id == "1rgnBhdG2JDFTbYkYRZAku"] <-
+  "5ZULALImTm80tzUbYQYM9d"
+top200$track.id[top200$track.id == "3apeXzypBMnUfYcZYNX6DH"] <-
+  "37ZtpRBkHcaq6hHy0X98zn"
+top200$track.id[top200$track.id == "6gBFPUFcJLzWGx4lenP6h2"] <-
+  "2SzjMcZIsE2zUWQnccsTAo"
+top200$track.id[top200$track.id == "513JwqDfENCJ0Woi0T42qy"] <-
+  "6hci8n9UowepjRmCc6CKTv"
+top200$track.id[top200$track.id == "13vDU8nPsvTGEVTMB8Vw7g"] <-
+  "6AzKhCHOms83jvNVLsz0Bt"
+top200$track.id[top200$track.id == "30VrBsh1STRBoIrhQOAwzK"] <-
+  "2VOomzT6VavJOGBeySqaMc"
+top200$track.id[top200$track.id == "79s5XnCN4TJKTVMSmOx8Ep"] <-
+  "6PnTgx9lyvLGIcPnroCvc2"
+top200$track.id[top200$track.id == "6i7zAdNhzUN2k1HcrBxPHG"] <-
+  "14ngWWxvUSnIMXgF6rzSk1"
+top200$track.id[top200$track.id == "1RSzyxqtIO4yX3EyiV4zT5"] <-
+  "5vGLcdRuSbUhD8ScwsGSdA"
+top200$track.id[top200$track.id == "4u7EnebtmKWzUH433cf5Qv"] <-
+  "7tFiyTwD0nx5a1eklYtX2J"
+top200$track.id[top200$track.id == "0jT8Nl0shPS8115is0wD2Q"] <-
+  "0Snbzbd74RLfL0i4nn1vU5"
+top200$track.id[top200$track.id == "3xgT3xIlFGqZjYW9QlhJWp"] <-
+  "6Qs4SXO9dwPj5GKvVOv8Ki"
+top200$track.id[top200$track.id == "24IgCW19L8lXKyFZwzFtD3"] <-
+  "14wf185UxfNbSy8dwt4r4q"
+top200$track.id[top200$track.id == "2xLMifQCjDGFmkHkpNLD9h"] <-
+  "0u695M7KyzXaPIjpEbxOkB"
+
+  #Assigning songs to different variable to prevent adjust the original data. 
+adjusted_songs200 <- songs
+
+  #Removing unnessesary columns that we do not want to join. 
+adjusted_songs200[, c('name', 'artists')] <- list(NULL)
+
+  #Renaming columns
+adjusted_songs200 <- adjusted_songs200 %>%
+  rename(., "track.id" = "id")
+
+  #Joining song characteristics from Song data frame with top200 data frame.
+top200 <- left_join(top200, adjusted_songs200, by = "track.id")
+
+  #Dealing with NA values. Filling in missing ones. 
+top200[2, 19] <- "['hip hop']"
+top200[26, 19] <- "['hip hop']"
+top200[32, 19] <- "['dance pop', 'pop']"
+top200[51, 19] <- "['pop']"
+top200[75, 19] <- "['classic rock']"
+top200[77, 19] <- "['k-pop', 'k-pop girl group']"
+top200[92, 19] <- "['r&b']"
+top200[98, 19] <- "['pop']"
+top200[98, 19] <- "['pop']"
+top200[106, 19] <- "['r&b']"
+top200[112, 19] <- "['pop']"
+top200[145, 19] <- "['classic rock']"
+top200[147, 19] <- "['indie poptimism']"
+top200[149, 19] <- "['hip hop']"
+top200[155, 19] <- "['hip hop']"
+top200[178, 19] <- "['hip hop']"
+top200[185, 19] <- "['edm']"
+top200[195, 19] <- "['r&b']"
+top200[198, 19] <- "['pop']"
+
+# 3. PREPARING "popular_genres"" DATASET
+  # Matching genres through string look up and subset it for each specific genre according to the BBC.
+k_pop <- songs[songs$genres %like% "k-pop",]
+latin_pop <- songs[songs$genres %like% "latin pop",]
+edm <- songs[songs$genres %like% "edm",]
+african <- songs[songs$genres %like% "afr",]
+hip_hop <- songs[songs$genres %like% "hip hop",]
+
+  # Adding genre column based on the overall genre
+k_pop = k_pop %>%
+  mutate(genre = rep("k-pop", 526))
+
+latin_pop = latin_pop %>%
+  mutate(genre = rep("latin pop", 2194))
+
+edm = edm %>%
+  mutate(genre = rep("edm", 997))
+
+african = african %>%
+  mutate(genre = rep("african", 921))
+
+hip_hop = hip_hop %>%
+  mutate(genre = rep("hip hop", 8173))
+
+  # Removing original column with all genres specified. This is irrelevant for our analysis. 
+k_pop$genres <- NULL
+latin_pop$genres <- NULL
+edm$genres <- NULL
+african$genres <- NULL
+hip_hop$genres <- NULL
+
+  # Generating popular genres dataframe from subsetted genres.
+popular_genres <- rbind(k_pop, latin_pop, edm, african, hip_hop)
+
+#4. REMOVING UNNECESSARY VARIABLES
+song <- NULL
+adjusted_songs200 <- NULL
+adjusted_genres <- NULL
+```
+
+```{r Top200 For Each Dataset, echo=FALSE, message=FALSE, warning=FALSE}
+#Displaying the top rows from each data set in our R markdown html export. 
+print("years")
+head(years)
+print("genres")
+head(genres)
+print("songs")
+head(songs)
+print("popular_genres")
+head(popular_genres)
+print("top200")
+head(top200)
+```
+
+## 2.2 Variable Selection
+<font size = "3"> 
+The main variables that are selected to check whether there is an influence on popularity are;
+
+Legend: **n**  = numerical  **c**  = categorical 
+
+* n - Valence: A measure from 0.0 (low) to 1.0 (high) describing the musical positiveness conveyed by a track.
+* n - Acousticness: A confidence measure from 0.0 (low) to 1.0 (high) of whether the track is acoustic.
+* n - Danceability: A measure from 0.0 (low) to 1.0 (high) describing how suitable a track is for dancing.
+* n - Duration: The length of the track in milliseconds.
+* n - Energy: A measure from 0.0 (low) to 1.0 (high) representing a perceptual measure of intensity and activity. 
+* n - Instrumentalness: Whether a track has vocals. 0.5 to 1.0 should contain almost no vocal content.
+* n - Liveness: indicates whether the song sounds like a live performance (1.0) compared to a studio-recorded track (0.0)
+* n - Loudness: Relative loudness of the track in the typical range [-60, 0] in decibel (dB).
+* n - Speechiness: track length with voice. 0.0-0.33: music/non-speech, 0.33-0.66: music and speech, 1.0: only speech. 
+* n - Tempo: The tempo of the track in Beat Per Minute (BPM). 
+* n - Popularity: A measure from 0 (low) to 100 (high) representing a score based on the total number of plays and how recent these plays are [(Spotify AB, 2020)](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/).
+
+The categorical variable used for this analysis is: 
+
+* c - genres: the genre specified by song or artists.
+ [(Spotify AB, 2020)](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/). </font>
+
+## 2.3 Exploratory Analysis
+### 2.3.1 Descriptive Analysis
+<font size = "3"> 
+To analyze the data, the data needs to be understood. We want to look at the features from a each data set by using the following functions: 
+
+* The *function (str)* was used to look at the data sets' internal structure. It shows the number of observations, the different variables, and the type of variables. 
+* The *function (summary)* was used to get a complete overview of our data. This function shows the minimal value, the maximum value, the mean and median of each column. It also gives an overview of the missing values, listed as a number under NA. 
+
+These two functions were consistently applied for all data sets. As an example, the descriptive analysis of the data set **"top200"** is presented. </font>
+<br><br>
+
+```{r Changing Data Types of Top200, message=FALSE, warning=FALSE, include=FALSE}
+#Changing data types in top200 data set based on structure analysis
+top200$track.name <- as.character(top200$track.name)
+top200$artists <- as.character(top200$artists)
+```
+
+
+```{r Example Top200 Structure, message=FALSE, warning=FALSE}
+#Calling function
+str(top200)
+```
+```{r Example Top200 Summary, message=FALSE, warning=FALSE}
+#Calling function
+summary(top200)
+```
+
+```{r Structure Statistics, message=FALSE, warning=FALSE, include=FALSE}
+#STRUCTURE STATISTICS
+#(Remove or add # to switch variables )
+x <- songs
+#x <- years
+#x <- genres
+#x <- popular_genres
+
+#calling function
+str(x)
+```
+
+```{r Summary Statistics,message=FALSE, warning=FALSE, include=FALSE}
+#SUMMARY STATISTICS
+#(Remove  or add # to switch variables )
+x <- songs
+#x <- years
+#x <- genres
+#x <- popular_genres
+
+#calling function
+summary(x)
+```
+
+```{r Change The Data type For Varialbes, message=FALSE, warning=FALSE, include=FALSE}
+# Changing data types in the other dataframes based on structure analysis.
+genres$genres <- as.character(genres$genres)
+genres$artists <- as.character(genres$artists)
+songs$genres <- as.character(songs$genres)
+songs$name <- as.character(songs$name)
+songs$release_date <- as.character.Date(songs$release_date)
+popular_genres$release_date <-
+  as.character.Date(popular_genres$release_date)
+years$year <- as.character.Date(years$year)
+
+```
+
+#### Insights & Decisions
+<font size = "3"> 
+**Missing Data**
+<br> Based on the data sets' statistics, it can be concluded that most missing values are associated with the genre. 
+
+* data set: **songs** - The genre column in the *songs* dataset is associated with the artists specified in the *genres* data set. If the main artist is missing in *genres* data set, it was not transferred over to the songs data set. Some artists have been classified with "[]," which means that no genre was assigned. There are 24.769 missing values for the genre column. These values are excluded whenever genres in this data set are analyzed. 
+* data set: **top200** - The data has five missing rows.These rows did not have matching song id's when comparing it with the *songs* data set. The characteristics information was also not available in Spotify's Open-Source Developers program. One row was left on-purposely left out since it was considered a Halloween holiday-song. The five rows with missing values are excluded from the analysis. </font>
+
+```{r Gather Spotify Open Source Result, echo=FALSE, message=FALSE, warning=FALSE}
+#Receiving album data for example in R markdown html document
+  #Specifying albnum id and variables to retrieve data. 
+albumID = "xK-6JI_1TNGHgsdLgOFUkw"
+track_URI = paste0('https://api.spotify.com/v1/albums/', albumID, '/tracks')
+track_response = GET(url = track_URI, add_headers(Authorization = HeaderValue))
+tracks = content(track_response)
+
+#Creating dataframe contain album information
+ntracks = length(tracks$items)
+tracks_list <- data.frame(
+  name = character(ntracks),
+  id = character(ntracks),
+  artist = character(ntracks),
+  disc_number = numeric(ntracks),
+  track_number = numeric(ntracks),
+  duration_ms = numeric(ntracks),
+  stringsAsFactors = FALSE
+)
+#Loop through each item in the list and input the details into the dataframe:
+for (i in 1:ntracks) {
+  tracks_list[i,]$id <- tracks$items[[i]]$id
+  tracks_list[i,]$name <- tracks$items[[i]]$name
+  tracks_list[i,]$artist <- tracks$items[[i]]$artists[[1]]$name
+  tracks_list[i,]$disc_number <- tracks$items[[i]]$disc_number
+  tracks_list[i,]$track_number <- tracks$items[[i]]$track_number
+  tracks_list[i,]$duration_ms <- tracks$items[[i]]$duration_ms
+}
+
+# Get Additional Track characteristics through seperate link
+for (i in 1:nrow(tracks_list)) {
+  Sys.sleep(0.10)
+  track_URI2 = paste0('https://api.spotify.com/v1/audio-features/',
+                      tracks_list$id[i])
+  track_response2 = GET(url = track_URI2,
+                        add_headers(Authorization = HeaderValue))
+  tracks2 = content(track_response2)
+  
+  tracks_list$key[i] <- tracks2$key
+  tracks_list$mode[i] <- tracks2$mode
+  tracks_list$time_signature[i] <- tracks2$time_signature
+  tracks_list$acousticness[i] <- tracks2$acousticness
+  tracks_list$danceability[i] <- tracks2$danceability
+  tracks_list$energy[i] <- tracks2$energy
+  tracks_list$instrumentalness[i] <- tracks2$instrumentalness
+  tracks_list$liveliness[i] <- tracks2$liveness
+  tracks_list$loudness[i] <- tracks2$loudness
+  tracks_list$speechiness[i] <- tracks2$speechiness
+  tracks_list$valence[i] <- tracks2$valence
+  tracks_list$tempo[i] <- tracks2$tempo
+  
+  # Assign the track to example_variable + print title.
+  Dua_lipa <- tracks_list
+  print(" Dua Lipa album result from Spotify's Open Source")
+}
+```
+
+```{r Example Spotify Open Source Result, echo=FALSE, message=FALSE, warning=FALSE}
+#Filtering example showing one track. 
+Dua_lipa[1,]
+```
+<font size = "3">
+**Changing Data Types**
+
+* The variables *track.name and name* have been changed from a *factor* to *characters*. 
+* The variables *artists* have been changed from a *factor* to *characters*. 
+* The variables *release_date* have been changed from a *factor* to a *character.date* format. </font>
+
+### 2.3.2 Exploratory Questions
+<font size = "3">
+To understand the data sets, it is needed to look deeper into popularity, song characteristics, and the different genres. This was done in a question format; 
+
+**1. How have the characteristics of music changed over the last ten years?** <br>
+Over the last years, technology has allowed music to change with new sounds and instruments. Taste is also something that changes over the years. It is essential to analyze the changing flow of music characteristics over the past decade to get a feeling for what song characteristics could define the characteristics of music and tastes of today’s climate.
+
+**2. Are they any correlations between the variables?** <br>
+Our data sets mention multiple song characteristics.  Knowing the different linear relationships between them is helpful when analyzing the data and creating the associated model. It is essential to check how strong the correlation is because it defines which variables are suitable for future regression about popularity.
+
+**3. What does it take to be in the top 200?** <br>
+Is it essential to verify whether the data gathered matches the statements made in the articles. The hypothesis was created based on those articles and need to be confirmed to proceed. Testing genres from perspectives are significant to our entire analysis.
+
+**4. What defines the popular genres suggested by BBC?**<br>
+Is it essential to verify whether the data gathered matches the statements made in the articles. The hypothesis was created based on those articles and need to be confirmed to proceed.
+<br>
+
+#### Question 1: How have the characteristics of music changed over the last ten years? 
+
+From the line-chart of characteristic changing flow, we can conclude that:
+
+* There are two characteristics: *Speechiness* and *Danceability*, keeping on increasing over the last decade.
+* The *Instrumentalness* has a clear trend of decreasing.
+* There are four characteristics that are fluctuating with changes of 0.1. 
+  + Both *Energy* and *Valence* show a positive change after 2016 to 2017.
+  + *Acousticness* and *Energy* have a trend showing a significant decrease within the range of 0.1 change during the year of 2018 to 2019.
+* *Liveness* is the only characteristic to be stable over the past decade.</font>
+
+```{r Creating Line-chart To Show Characteristics Changing Flow, echo=FALSE, message=FALSE, warning=FALSE}
+# Make a list of variables
+years$year <- as.integer(years$year)
+years_data <- years %>%
+  filter(year <= 2020, year >= 2010) %>%
+  pivot_longer(
+    c(
+      "acousticness",
+      "danceability",
+      "energy",
+      "instrumentalness",
+      "liveness",
+      "speechiness",
+      "valence"
+    ),
+    names_to = "characteristics",
+    values_to = "value"
+  )
+
+# Make line chart by characteristics
+ggplot(years_data, aes(x = year, y = value)) +
+  xlab("") + ylab("Characteristic Value") +
+  scale_x_continuous(breaks = seq(2010, 2020, 1)) +
+  geom_line(aes(color = characteristics))  #defining the colors by characteristics
+```
+
+*Figure 4: Characteristics Changes over the last ten years*
+
+#### Question 2: Are they any correlations between the variables?
+<font size = "3">
+With a 95% of confident interval that the correlation chart in figure 5 shows that;
+
+* A strong positive correlation between *Energy* and *Loudness* (+0.78)
+* A moderate positive correlation between *Danceability* and *Valence* (+0.56)
+* A moderate positive correlation between *Popularity* and *Energy* (+0.49)
+* A moderate positive correlation between *Popularity* and *Loudness* (+0.46)
+* A strong negative correlation between *Acousticness* and *Energy* (-0.75)
+* A moderate negative correlation between *Acousticness* and *Loudness* (-0.56)
+* A moderate negative correlation between *Popularity* and *Acousticness* (-0.57)
+<br>
+</font>
+```{r Correlation Matrix, echo=FALSE}
+# Set the color for correlations chart
+col <-
+  colorRampPalette(c(
+    "#08AFF6",
+    "#35A5DC",
+    "#619BC1",
+    "#8E91A7",
+    "#BA878C",
+    "#E77D72"
+  ))
+
+# Select variables for correlations chart
+data_corr <- songs %>%
+  select(
+    "popularity",
+    "acousticness",
+    "danceability",
+    "duration_ms",
+    "energy",
+    "instrumentalness",
+    "liveness",
+    "loudness",
+    "speechiness",
+    "tempo",
+    "valence"
+  )
+
+# Define M to make correlations with method of pearson
+M = cor(data_corr, method = "pearson")
+
+# Set the confidence level 95%
+res1 <- cor.mtest(data_corr, conf.level = 0.95)
+
+# Make the correlation matrix chart
+corrplot(
+  M,
+  col = col(200), #methods with colors + setting aesthetics 
+  tl.col = "black", 
+  tl.srt = 45,
+  p.mat = res1$p,
+  sig.level = 0.01, 
+  type = "upper"
+)
+```
+
+*Figure 5: Correlation matrix song characteristics*
+<br>
+
+#### Question 3: What does it take for a song to be in the top 200? 
+
+<font size = "3">
+As was mentioned before, the top200 is defined by the number of streams in a given period. Knowing this, there should be a relationship between the popularity score and the total number of streams. It is assumed that a high number of streams should have a high popularity score. However, this is not the case. 
+
+Figure 6 shows that it contradicts our assumption. The plot shows that there are quite some **variations** in the top200 popularity score. With a threshold of a popularity score of 85, there are 41 outliers, which is approximately 20.5% of all data points. </font>
+
+```{r Scatter Plot for Variables Popularity and Streams,echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+#QUESTION 2
+#Scatter plot for variables popularity and streams
+ggplot(top200, aes(x = streams, y = popularity)) +
+  geom_point() + #defines scatterplot
+  geom_smooth(method = "lm", color = "#E77D72") +  #adds linear regression line
+  xlab("Number of streams") + ylab("Popularity Score") +
+  geom_hline(
+    aes(size = 7),
+    yintercept = 83,
+    linetype = "dotted",
+    color = "#E77D72"
+  ) #defines scatterplot treshhold
+```
+
+*Figure 6: Scatterplot with the number of streams over popularity*
+<br>
+```{r Calculate Outliers Top200, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+#QUESTION 2
+#Discover how many values are below score 85
+number <- top200 %>%
+  filter(popularity < 83) %>%
+  nrow()
+
+#Calculate percentage of outliers
+(number / 200) * 100
+```
+
+<font size = "3">
+A simple linear model reflects a **linear relationship**; however, only 18% of all streaming numbers account for the popularity score. </font>
+
+```{r Summary Simple Linear Regression Stream vs Popularity, echo=FALSE, message=FALSE, warning=FALSE}
+# QUESTION 2
+#Print title for the summary
+print("Simple Linear Regression Summary:")
+
+#Summary for linear regression variables popularity and number of streams
+lm(formula = popularity ~ streams, data = top200) %>%
+  summary() #showing summary statistics
+```
+<font size = "3">
+Knowing that the popularity score contains many variations, it was needed to look at other characteristics that would define why a song would be at the top200. 
+
+There are some outliers in the data set that have different characteristics. These represent the red dots in the graph in figure 7. As the data is presented as a density graph, it can be seen that the majority of the songs represent either more skewed data or the bigger chunks in the middle. This indicates that each characteristic graph's highest point represents the characteristic score of the top 200 songs. This means that the most common characteristics for the top 200 songs are: 
+
+* Low acousticness score
+* Medium to high loudness score
+* Low speechness score
+* Low liveness score
+* Medium to high danceability score 
+
+The warning presented is due to the five missing values. </font>
+<br>
+```{r Characteristics Songs Top200, echo=FALSE, message=FALSE}
+top200_p <- top200 %>%
+  pivot_longer(
+    c(
+      "valence",
+      "acousticness",
+      "danceability",
+      "energy",
+      "liveness",
+      "speechiness",
+      "instrumentalness",
+      "loudness"
+    ),
+    names_to = "characteristic",
+    values_to = "value"
+  )
+
+# Create density plot and facet wrap by characteristic
+ggplot(data = top200_p, aes(x = value)) +
+  geom_density() +
+  xlab(" ") + ylab("") +
+  facet_wrap( ~ characteristic,
+              ncol = 4,
+              nrow = 2,
+              scales = 'free') + # doing a facet_wrap
+  theme(axis.text.x = element_text(angle = 50, hjust = 1),
+        axis.text.y = element_blank()) + #format style
+  geom_boxplot(
+    color = "white",
+    alpha = 1,
+    width = 0.001,
+    #adding outliers in plot + aes of outliers
+    outlier.colour = "#E77D72",
+    outlier.fill = "red",
+    outlier.size = 1,
+    na.rm = TRUE
+  ) 
+```
+
+*Figure 7: Density plot showing smoothened count of song characteristics*
+<br>
+
+<font size = "3"> Therefore, the following can be concluded: 
+
+* Songs do not need to have a high score to be in the top 200 list. The top 200 only reflects a specific day, while the popularity score is calculated over time. 
+* Common top200 characteristics on October 31, 2020, included acousticness, loudness, speechness, liveness, and danceability. 
+* The summary statistics of the dataset songs shows that the 75th percentile of the popularity score is approximately 48. Following the similar song characteristics, songs above 75th percentile have a chance to be in the top 200 list. Nevertheless, our top 200 list is the random sample, therefore; when generating the data from another random date, the popularity scores might have different variations. 
+
+the songs with the popularity score which is at list more than 75% percentile of entire dataset, following with the same pattern of different characteristics have higher opportunity to hit the top 200 ranking list.
+
+#### Question 4: Are the popularity statements from BBC about the genres K-pop, EDM, Latin Pop, and African accurate? 
+First, we need to look at different outliers. Figure 8 shows that there are some outliers present. It also shows that some genres have more songs than others in the data set, such as African music followed by hip hop and Latin American music. It can be stated based on the plot that these genres generally have higher popularity scores: 
+
+* K-pop
+* Electronic Dance Music
+* Hip Hop </font>
+
+```{r Outliers Genres / Popularity, echo=FALSE, message=FALSE, warning=FALSE}
+# Create Boxplot by different genre
+ggplot(data = popular_genres, aes(x = genre, y = popularity, color = genre)) +
+  xlab("Popular genres") + ylab("Popularity Score") +
+  geom_boxplot(outlier.size = 0.3,
+               #showing the ourliers
+               na.rm = TRUE,
+               #specify the NA
+               outlier.colour = "Black") #define outlier color
+```
+<br>
+*Figure 8: Boxplot for popularity score by genres*
+<br> <br>
+<font size = "3">
+The genres K-pop, electronic dance music, and hip-hop are more popular than others due to the shared pattern in characteristics. Figure 9 shows different patterns for each song characteristic. The shared characteristics include; 
+
+* Energy
+* Danceability 
+* Valence
+* Loudness
+* Somewhat for tempo with the exception for K-pop </font>
+
+```{r Density Plot By Genre, echo=FALSE, message=FALSE, warning=FALSE}
+# Pivot the variables of popular_genres 
+pivot_popular_genres <- popular_genres %>%
+  pivot_longer(
+    c(
+      "valence",
+      "duration_ms",
+      "acousticness",
+      "danceability",
+      "energy",
+      "liveness",
+      "speechiness",
+      "instrumentalness",
+      "loudness",
+      "tempo"
+    ),
+    names_to = "characteristics",
+    values_to = "value"
+  )
+
+# Create density plot facet wrap by characteristics
+ggplot(data = pivot_popular_genres, aes(x = value)) +
+  geom_density(aes(color = genre), position = "identity") +
+  facet_wrap(~ characteristics,
+             ncol = 5,
+             nrow = 2,
+             scales = 'free') +
+  xlab(" ") + ylab("") +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1),
+        axis.text.y = element_blank())
+```
+
+*Figure 9: Density plot showing smoothened count of song characteristics by genre*
+<br>
+<font size = "3">
+
+### 2.3.3 Conclusion
+
+**Based on the exploratory data analysis, the following can be concluded;**
+
+*	The BBC claims that K-pop, EDM, hip-hop, African, and Latin pop are popular growing genres. K-pop, EDM, and hip-hop stand apart from the other two genres in their similarity and popularity.
+*	The top 200 songs list reflects songs with the most streams on any given day rather than songs with the highest popularity score. The fact that any song with similar characteristics can be in the top 200 suggests that it may be better for an artist to focus on maintaining a good popularity score rather than aiming for the top 200 list. * Analysis of the top 200 songs and the popular genres points towards a trend with songs becoming more danceable, containing more speech, and being less instrumental. 
+* Energetic and positive songs rebounded in 2018 after receding in 2010. The top 200 contains a mix of positive/negative and low/high energy songs. 
+* Acoustic and live music seems to have relatively stable popularity, although looking to the top genres, there has been a decrease in live and acoustic music. 
+* The correlation matrix indicated that there are some positive and negative linear relationships. As is known, the matrix does not show us any causational relationship, but we do know from our analysis that popularity has some patterns with characteristics such as energy, acoustic, loudness, danceability, instrumentals, liveness, speech, and tempo.
+
+# 2.4 Inital Hypothesis Adjustments 
+
+Based on the conclusion of the exploratory analysis, hypothesis for our predittive model is changed; 
+
+* The top 200 songs do not necessarily define the popularity score as the number of streams only reflect the popularity given a certain data. Therefore, the indicator of the number of streams will not be included in our model as a characteristic. This top 200 sample data is disregarded from the analysis. 
+* The African genres as well the latin american pop genre are not as popular as claimed when looking at the popularity score. To simplify the analysis for modelling, it is decided to exclude these genres. 
+
+* When looking at certain characteristics: as durartion of the songs are similar, this characterisc is not included. duration_ms.  
+
+Therefore, the adjusted hypothesis for a predictive analysis focusing is: 
+<br>
+*Ho: The characteristics (instrumentalness, acousticness, liveness, dancability, engergy, loudness, speechness, valence, tempo) of the genres "K-pop", "Hip Hop", and "Electronic Dance Music" are not statistically significantly related to song popularity score.*
+
+*Ha: The characteristics (acousticness, liveness, dancability, engergy, loudness, speechness, valence, tempo) of the genres "K-pop", "Hip Hop", and "Electronic Dance Music" are statistically significantly related to song popularity score.* </font> 
+
+# 3.Modelling & Communication 
+## 3.1 Model Building
+<font size = "3">
+In order to test our hypothesis, it is needed to explore multiple regression models to find the best one that fits. 
+* 60% of the data goes into a training set, fitting different models.
+* 20% of the data is used into a query set to compare models *(query_data)*. 
+* 20% of the data was reserved to test the finalized model *(test_data)*.</font> 
+
+```{r Adjusted Dataset for Modelling, include=FALSE}
+#Creatinb an overall modelling dataset
+modelling_data <- popular_genres %>%
+  filter(genre %in% c("k-pop", "hip hop", "edm") &
+           popularity >= 25) %>%
+  select(-c("release_date", "year", "duration_ms", "id", "artists"))
+```
+
+```{r include=FALSE}
+set.seed(123)
+# Seperating modelling data for training data
+training_data <- modelling_data %>%
+  slice_sample(prop = 0.6) # 60% of the dataset
+```
+
+```{r include=FALSE}
+left <-
+  modelling_data[!(modelling_data$name %in% training_data$name),]
+
+#Seperating data for our quary dataset
+query_data <- left %>%
+  slice_sample(prop = 0.5) # 20% of the dataset
+
+#Genre specific Data for training
+query_data_edm <- query_data %>%
+  filter(genre == "edm")
+
+query_data_k_pop <- query_data %>%
+  filter(genre == "k-pop")
+
+query_data_hip_hop <- query_data %>%
+  filter(genre == "hip hop")
+
+#Seperating last data for our testing data set
+test_data <- left[!(left$name %in% query_data$name),]
+
+#Genre specific Data for training
+training_data_edm <- training_data %>%
+  filter(genre == "edm")
+
+training_data_k_pop <- training_data %>%
+  filter(genre == "k-pop")
+
+training_data_hip_hop <- training_data %>%
+  filter(genre == "hip hop")
+
+#Subset Test data
+test_data <-
+  modelling_data[!(modelling_data$name %in% training_data$name),]
+
+#Genre specific Data for test
+test_data_edm <- test_data %>%
+  filter(genre == "edm")
+
+test_data_k_pop <- test_data %>%
+  filter(genre == "k-pop")
+
+test_data_hip_hop <- test_data %>%
+  filter(genre == "hip hop")
+
+#Remove unnecessary table
+left <- NULL
+```
+
+<font size = "3">
+There are many different models (with different families). One example is `lm(),` better known as a **linear model**, following the rules of *Ordinary Least Squares*. The function takes the individual data points generated from two+ variables and draws the best line through them to minimize the differences between the observed values and predicted value. 
+
+**Our model should have a confidence level of 95%, which indicates that p-values should be smaller than 0.05.** 
+
+To determine the fit of the model, the scatterplot matrix and the distribution of each characteristic needs be checked; </font>
+
+```{r Scatterplot Matrix, echo=FALSE, fig.width=10, message=FALSE, warning=FALSE, paged.print=TRUE}
+#Creating a scatterplot to show the relationship with the popularity score for each characteristic
+scatterplot_charac <- training_data %>%
+  pivot_longer(
+    c(
+      "valence",
+      "acousticness",
+      "danceability",
+      "energy",
+      "liveness",
+      "speechiness",
+      "loudness",
+      "tempo",
+      "instrumentalness"
+    ),
+    names_to = "characteristics",
+    values_to = "value"
+  ) %>%
+  ggplot(., aes(x = popularity, y = value)) +
+  geom_point(alpha = 0.4) +
+  ggtitle("Scatterplot of Song Characteristics by Popularity") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  facet_wrap( ~ characteristics, scales = "free") + ylab(" ") + xlab("by Popularity Score")
+
+#Creating a histrogram to show distribution for each characteristic
+histogram_charac <- training_data %>%
+  keep(is.numeric) %>%
+  select(-popularity) %>%
+  gather() %>%
+  ggplot(aes(value, fill = value)) +
+  facet_wrap( ~ key, scales = "free") +
+  geom_histogram() +
+  ggtitle("Song Characteristics Distributions") +
+  theme(plot.title = element_text(hjust = 0.5)) + ylab(" ") + xlab("Song Characteristic Value")
+
+grid.arrange(scatterplot_charac, histogram_charac, ncol = 2)
+```
+
+*Figure 10: Density plot showing smoothened count of song characteristics by genre*
+
+<font size = "3">
+As shown in figure 10, popularity does not have any clear linear patterns, indicating that the relationship between our dependent and independent variables is mostly non-linear. This is also shown in the correlation matrix presented in figure 5. Some correlations are related to popularity; however, these are not substantial. This has to be taken into account when fitting the best model.  
+
+The approach that was taken was to test all possible combinations of all the characteristics. This had let to the creation of 511 different combinations. For all of these combinations, it was needed to test four different datasets: the training data and the training data set split by each genre. 
+
+Do not worry; we did not go through all 2044 different models! R helped us through functions and loops to determine which12 models (3 of each data set) were the best: 
+* *Training Data Set: * Model 1, Model 2, Model 3
+* *EDM Data: * Model 4, Model 5, Model 6
+* *K-Pop Data: * Model 7, Model 8, Model 9
+* *Hip Hop Data: * Model 10, Model 11, Model 12 </font>
+<br>
+```{r Model Setup, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# Creating A vector with the different characteristics
+characteristics <-
+  c(
+    "popularity",
+    "danceability",
+    "energy",
+    "loudness",
+    "speechiness",
+    "acousticness",
+    "liveness",
+    "valence",
+    "tempo",
+    "instrumentalness"
+  )
+
+# List for function and combinations
+N <- list(1, 2, 3, 4, 5, 6, 7, 8, 9)
+
+#Calculate all the combinations possible for the models and save it in a variable
+COMB <- sapply(N, function(m)
+  combn(x = characteristics[2:10], m))
+
+#Create empty list for all formula combinations and starting variable for list.
+formulas <- list()
+k = 0
+
+# Loop to create the formula list
+for (i in seq(COMB)) {
+  tmp <- COMB[[i]]
+  for (j in seq(ncol(tmp))) {
+    k <- k + 1
+    formulas[[k]] <-
+      paste("popularity", "~", paste(tmp[, j], collapse = " + "))
+  }
+}
+
+#--------------------------------------------------------
+##Design length variable for all all possible combinations.
+desired_length <- c(1:511)
+
+#Create empty vector for the names of each model.
+model_names <- vector(mode = "character", length(desired_length))
+
+# For loop to add the names of each model
+for (i in seq_along(desired_length)) {
+  model_names[i] <- str_c("model", desired_length[i])
+}
+
+#--------------------------------------------------------
+#Function for the r_sqared
+func_r_squared <- function(x) {
+  substract1 <- glance(x)[c("r.squared")]
+  substract1$r.squared
+}
+
+#Function for the adjusred r_sqared
+func_adj_r_squared <- function(x) {
+  substract2 <- glance(x)[c("adj.r.squared")]
+  substract2$adj.r.squared
+}
+
+#Function for the sigma
+func_sigma <- function(x) {
+  substract3 <- glance(x)[c("sigma")]
+  substract3$sigma
+}
+
+#Function for the f-statistic
+func_statistic <- function(x) {
+  substract4 <- glance(x)[c("statistic")]
+  substract4$statistic
+}
+
+#Function for the f-statistic p-value
+func_p_value <- function(x) {
+  substract5 <- glance(x)[c("p.value")]
+  substract5$p.value
+}
+
+
+#Function to check coefficients' p-values
+P_value_Check <- function(x) {
+  output <- vector(mode = "character", length(x))
+  
+  for (i in seq_along(x)) {
+    statis <- broom::tidy(x[[i]])
+    p_val <- statis[[5]]
+    
+    if (any(p_val > 0.05)) {
+      output[i] <- ("Rejected")
+    }
+    else {
+      output[i] <- ("Accepted")
+    }
+  }
+  return(output)
+}
+
+#--------------------------------------------------------
+# Specify empty variables
+v_r_squared  <- vector(mode = "numeric", length(desired_length))
+v_adj_r_squared  <- vector(mode = "numeric", length(desired_length))
+v_sigma  <- vector(mode = "numeric", length(desired_length))
+v_statistic  <- vector(mode = "numeric", length(desired_length))
+v_p_value  <- vector(mode = "numeric", length(desired_length))
+v_formula  <- vector(mode = "character", length(desired_length))
+linear_models = list()
+```
+
+```{r Top Models Training Data, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# For loop for each vetor
+for (i in seq_along(formulas)) {
+  v_formula[i] <- formulas[[i]]
+  linear_models[[i]] = lm(formulas[[i]], data = training_data)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+
+# To Create the model:
+coefficient <- P_value_Check(x = linear_models)
+models_training <-
+  data.frame(
+    model_names,
+    v_r_squared,
+    v_adj_r_squared,
+    v_sigma,
+    v_statistic,
+    v_p_value,
+    coefficient,
+    v_formula
+  )
+colnames(models_training) <-
+  c(
+    "model",
+    "r.squared",
+    "adj.r.squared",
+    "sigma",
+    "f.statistic",
+    "f.stat.p_value",
+    "Coefficients",
+    "Formula"
+  )
+```
+
+
+```{r Top models Training EDM, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# For loop for each vetor
+for (i in seq_along(formulas)) {
+  v_formula[i] <- formulas[[i]]
+  linear_models[[i]] = lm(formulas[[i]], data = training_data_edm)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+
+# To Create the model: 
+coefficient <- P_value_Check(x=linear_models)
+models_edm<- data.frame(model_names,v_r_squared,v_adj_r_squared, v_sigma, v_statistic, v_p_value, coefficient, v_formula)
+colnames(models_edm) <- c("model","r.squared", "adj.r.squared", "sigma", "f.statistic", "f.stat.p_value", "Coefficients", "Formula")
+```
+
+```{r Top models Training K-pop, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# For loop for each vetor
+for (i in seq_along(formulas)) {
+  v_formula[i] <- formulas[[i]]
+  linear_models[[i]] = lm(formulas[[i]], data = training_data_k_pop)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+
+# To Create the model: 
+coefficient <- P_value_Check(x=linear_models)
+models_K_pop <- data.frame(model_names,v_r_squared,v_adj_r_squared, v_sigma, v_statistic, v_p_value, coefficient, v_formula)
+colnames(models_K_pop) <- c("model","r.squared", "adj.r.squared", "sigma", "f.statistic", "f.stat.p_value", "Coefficients", "Formula")
+```
+
+```{r Top models Training Hip Hop, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# For loop for each vetor
+for (i in seq_along(formulas)) {
+  v_formula[i] <- formulas[[i]]
+  linear_models[[i]] = lm(formulas[[i]], data = training_data_hip_hop)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+#--------------------------------------------------------------------------------
+# For Create the model:
+coefficient <- P_value_Check(x = linear_models)
+models_hip_hop <-
+  data.frame(
+    model_names,
+    v_r_squared,
+    v_adj_r_squared,
+    v_sigma,
+    v_statistic,
+    v_p_value,
+    coefficient,
+    v_formula
+  )
+colnames(models_hip_hop) <-
+  c(
+    "model",
+    "r.squared",
+    "adj.r.squared",
+    "sigma",
+    "f.statistic",
+    "f.stat.p_value",
+    "Coefficients",
+    "Formula"
+    
+  )
+``` 
+
+```{r Generate all models, echo=FALSE}
+# generate top 3 models in training dataset
+training_models <- models_training %>%
+  filter(Coefficients == "Accepted") %>%
+  slice_max(adj.r.squared, n = 3)
+
+# generate top 3 models in edm dataset
+edm_models <- models_edm %>%
+  filter(Coefficients == "Accepted") %>%
+  slice_max(adj.r.squared, n = 3)
+
+# generate top 3 models in k-pop dataset
+k_pop_models <- models_K_pop %>%
+  filter(Coefficients == "Accepted") %>%
+  slice_max(adj.r.squared, n = 3)
+
+# generate top 3 models in hip hop dataset
+hip_hop_models <- models_hip_hop %>%
+  filter(Coefficients == "Accepted") %>%
+  slice_max(adj.r.squared, n = 3)
+
+# combine all models together as dataframe
+all_training_data_models <-
+  rbind(training_models, edm_models, k_pop_models, hip_hop_models)
+
+# rename the model columns
+all_training_data_models$model <-
+  c(
+    "model_1",
+    "model_2",
+    "model_3",
+    'model_4',
+    "model_5",
+    "model_6",
+    "model_7",
+    "model_8",
+    "model_9",
+    "model_10",
+    "model_11",
+    "model_12"
+  )
+all_training_data_models
+
+```
+```{r Model_Variables, include=FALSE}
+#variables models training_data
+model_1 <- lm(formulas[[505]], data = training_data)
+model_2 <- lm(formulas[[510]], data = training_data)
+model_3 <- lm(formulas[[497]], data = training_data)
+model_4 <- lm(formulas[[399]], data = training_data_edm)
+model_5 <- lm(formulas[[46]], data = training_data_edm)
+model_6 <- lm(formulas[[344]], data = training_data_edm)
+model_7 <- lm(formulas[[258]], data = training_data_k_pop)
+model_8 <- lm(formulas[[130]], data = training_data_k_pop)
+model_9 <- lm(formulas[[133]], data = training_data_k_pop)
+model_10 <- lm(formulas[[505]], data = training_data_hip_hop)
+model_11 <- lm(formulas[[479]], data = training_data_hip_hop)
+model_12 <- lm(formulas[[497]], data = training_data_hip_hop)
+
+#variables models quary_data
+model_1_1 <- lm(formulas[[505]], data = query_data)
+model_2_1 <- lm(formulas[[510]], data = query_data)
+model_3_1 <- lm(formulas[[497]], data = query_data)
+model_4_1 <- lm(formulas[[399]], data = query_data_edm)
+model_5_1 <- lm(formulas[[46]], data = query_data_edm)
+model_6_1 <- lm(formulas[[344]], data = query_data_edm)
+model_7_1 <- lm(formulas[[258]], data = query_data_k_pop)
+model_8_1 <- lm(formulas[[130]], data = query_data_k_pop)
+model_9_1 <- lm(formulas[[133]], data = query_data_k_pop)
+model_10_1 <- lm(formulas[[505]], data = query_data_hip_hop)
+model_11_1 <- lm(formulas[[479]], data = query_data_hip_hop)
+model_12_1 <- lm(formulas[[497]], data = query_data_hip_hop)
+
+#variables model test_data
+model_5_2 <- lm(formulas[[46]], data = test_data_edm)
+```
+<font size = "3">
+The statistics of the linear regressions were gathered and were put into an overview. The statistics include: 
+
+* Adjusted R Squared to check how much variance in the popularity score can be explained by the characteristics.  Here we filtered it to be the highest number. 
+* R Squared, to compare the score with the adjusted R square. 
+* F-statistic, to check whether the model is higher than the number 1. 
+* F-statistic P-value to check whether the model meets the significance level of 0.05, therefore knowing whether the model fits the data. 
+* Coefficients, to check whether all coefficients in the model meet the significance level. 
+
+The coefficient column shows whether one or more variable coefficients are rejected. This means that some variables did not meet the significance level. When it says accepted, it indicates that all coefficients met the significance level. 
+</font>
+<center>
+<font size = "4">
+<br>
+Residuals Plot by Model
+</font>
+</center>
+
+```{r Plot residuals, echo=FALSE, fig.height=7, fig.width=10, message=FALSE, warning=FALSE, paged.print=FALSE}
+#Plot Residuals Function
+plot_residuals <- function(x, y = "Model") {
+  ggplot(data = x, aes(x = .fitted, y = .resid)) +
+    geom_point(alpha = 0.3) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    xlab("Fitted Values") +
+    ylab("Residuals") +
+    ggtitle(y) +
+    theme(plot.title = element_text(
+      hjust = 0.5,
+      size = 12,
+      face = "bold"
+    ))
+}
+
+#Assignning the models residuals to a plot
+residuals1 <- plot_residuals(x = model_1, y = "Model 1")
+residuals2 <- plot_residuals(x = model_2, y = "Model 2")
+residuals3 <- plot_residuals(x = model_3, y = "Model 3")
+residuals4 <- plot_residuals(x = model_4, y = "Model 4")
+residuals5 <- plot_residuals(x = model_5, y = "Model 5")
+residuals6 <- plot_residuals(x = model_6, y = "Model 6")
+residuals7 <- plot_residuals(x = model_7, y = "Model 7")
+residuals8 <- plot_residuals(x = model_8, y = "Model 8")
+residuals9 <- plot_residuals(x = model_9, y = "Model 9")
+residuals10 <- plot_residuals(x = model_10, y = "Model 10")
+residuals11 <- plot_residuals(x = model_11, y = "Model 11")
+residuals12 <- plot_residuals(x = model_12, y = "Model 12")
+
+#display the residuals together.
+grid.arrange(
+  residuals1,
+  residuals2,
+  residuals3,
+  residuals4,
+  residuals5,
+  residuals6,
+  residuals7,
+  residuals8,
+  residuals9,
+  residuals10,
+  residuals11,
+  residuals12,
+  ncol = 3
+)
+
+```
+
+*Figure 11: Residual Plot for each model*
+
+<font size = "3">
+The residual plots in figure 11 show no unwanted patterns, so the regression coefficients and other numeric results can be trusted. This indicates that the residuals are consistent with random error, which meets an OLS linear regression model's requirement.
+
+## 3.2 Comparing Models 
+To compare the different models, the 12 chosen models were rerun with the query data. These models should confirm whether the model is strong enough and give similar results to those created with the training data. These are the results: 
+
+```{r Subsetting formulas based on chosen formulas, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#subsetting formulas
+formulas1 <- formulas[c(505, 510, 497)]
+formulas2 <- formulas[c(399, 46, 344)]
+formulas3 <- formulas[c(258, 130, 133)]
+formulas4 <- formulas[c(505, 479, 497)]
+
+#creating a new length for vectors
+desired_length2 <- c(1:3)
+```
+
+
+```{r Query Data, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#Create empty vector for the names of each model.
+model_names <- vector(mode = "character", length(desired_length2))
+
+# For loop to add the names of each model
+for (i in seq_along(desired_length2)) {
+  model_names[i] <- str_c("model", desired_length2[i])
+}
+
+# Specify empty variables for query data
+v_r_squared  <- vector(mode = "numeric", length(formulas1))
+v_adj_r_squared  <- vector(mode = "numeric", length(formulas1))
+v_sigma  <- vector(mode = "numeric", length(formulas1))
+v_statistic  <- vector(mode = "numeric", length(formulas1))
+v_p_value  <- vector(mode = "numeric", length(formulas1))
+v_formula  <- vector(mode = "character", length(formulas1))
+linear_models = list()
+
+# Run loop to apply new values to the empty vectors
+for (i in seq_along(formulas1)) {
+  v_formula[i] <- formulas1[[i]]
+  linear_models[[i]] = lm(formulas1[[i]], data = query_data)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+
+# Create the model:
+coefficient <- P_value_Check(x = linear_models)
+models_query <-
+  data.frame(
+    model_names,
+    v_r_squared,
+    v_adj_r_squared,
+    v_sigma,
+    v_statistic,
+    v_p_value,
+    coefficient,
+    v_formula
+  )
+colnames(models_query) <-
+  c(
+    "model",
+    "r.squared",
+    "adj.r.squared",
+    "sigma",
+    "f.statistic",
+    "f.stat.p_value",
+    "Coefficients",
+    "Formula"
+  )
+
+
+#Checking the results with the highest adjusted-Rsquared
+models_query
+```
+
+```{r Query EDM, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#Create empty vector for the names of each model.
+model_names <- vector(mode = "character", length(desired_length2))
+
+# For loop to add the names of each model
+model_names <- c("Model_4", "Model_5", "Model_6")
+
+# Specify empty variables for test data
+v_r_squared  <- vector(mode = "numeric", length(desired_length2))
+v_adj_r_squared  <- vector(mode = "numeric", length(desired_length2))
+v_sigma  <- vector(mode = "numeric", length(desired_length2))
+v_statistic  <- vector(mode = "numeric", length(desired_length2))
+v_p_value  <- vector(mode = "numeric", length(desired_length2))
+v_formula  <- vector(mode = "character", length(desired_length2))
+linear_models = list()
+
+# Run loop to apply new values to the empty vectors
+for (i in seq_along(formulas2)) {
+  v_formula[i] <- formulas2[[i]]
+  linear_models[[i]] = lm(formulas2[[i]], data = query_data_edm)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+
+# Create the model:
+coefficient <- P_value_Check(x = linear_models)
+models_query_EDM <-
+  data.frame(
+    model_names,
+    v_r_squared,
+    v_adj_r_squared,
+    v_sigma,
+    v_statistic,
+    v_p_value,
+    coefficient,
+    v_formula
+  )
+colnames(models_query_EDM) <-
+  c(
+    "model",
+    "r.squared",
+    "adj.r.squared",
+    "sigma",
+    "f.statistic",
+    "f.stat.p_value",
+    "Coefficients",
+    "Formula"
+  )
+
+#Checking the results with the highest adjusted-Rsquared
+models_query_EDM
+```
+
+```{r Query K-Pop, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#Create empty vector for the names of each model.
+model_names <- vector(mode = "character", length(desired_length2))
+
+# For loop to add the names of each model
+model_names <- c("Model_7", "Model_8", "Model_9")
+
+# Specify empty variables for query data
+v_r_squared  <- vector(mode = "numeric", length(desired_length2))
+v_adj_r_squared  <- vector(mode = "numeric", length(desired_length2))
+v_sigma  <- vector(mode = "numeric", length(desired_length2))
+v_statistic  <- vector(mode = "numeric", length(desired_length2))
+v_p_value  <- vector(mode = "numeric", length(desired_length2))
+v_formula  <- vector(mode = "character", length(desired_length2))
+linear_models = list()
+
+# Run loop to apply new values to the empty vectors
+for (i in seq_along(formulas3)) {
+  v_formula[i] <- formulas3[[i]]
+  linear_models[[i]] = lm(formulas3[[i]], data = query_data_k_pop)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+
+# Create the model:
+coefficient <- P_value_Check(x = linear_models)
+models_query_K_pop <-
+  data.frame(
+    model_names,
+    v_r_squared,
+    v_adj_r_squared,
+    v_sigma,
+    v_statistic,
+    v_p_value,
+    coefficient,
+    v_formula
+  )
+colnames(models_query_K_pop) <-
+  c(
+    "model",
+    "r.squared",
+    "adj.r.squared",
+    "sigma",
+    "f.statistic",
+    "f.stat.p_value",
+    "Coefficients",
+    "Formula"
+  )
+
+#Checking the results with the highest adjusted-Rsquared
+models_query_K_pop
+```
+
+```{r Query Hip Hop, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#Create empty vector for the names of each model.
+model_names <- vector(mode = "character", length(desired_length2))
+
+# For loop to add the names of each model
+model_names <- c("Model_10", "Model_11", "Model_12")
+
+# Specify empty variables for query data
+v_r_squared  <- vector(mode = "numeric", length(desired_length2))
+v_adj_r_squared  <- vector(mode = "numeric", length(desired_length2))
+v_sigma  <- vector(mode = "numeric", length(desired_length2))
+v_statistic  <- vector(mode = "numeric", length(desired_length2))
+v_p_value  <- vector(mode = "numeric", length(desired_length2))
+v_formula  <- vector(mode = "character", length(desired_length2))
+linear_models = list()
+
+# Run loop to apply new values to the empty vectors
+for (i in seq_along(formulas4)) {
+  v_formula[i] <- formulas4[[i]]
+  linear_models[[i]] = lm(formulas4[[i]], data = query_data_hip_hop)
+  v_r_squared[i] <- (func_r_squared(linear_models[[i]]))
+  v_adj_r_squared[i] <- (func_adj_r_squared(linear_models[[i]]))
+  v_sigma[i] <- (func_sigma(linear_models[[i]]))
+  v_statistic[i] <- (func_statistic(linear_models[[i]]))
+  v_p_value[i] <- (func_p_value(linear_models[[i]]))
+}
+
+# Create the model:
+coefficient <- P_value_Check(x = linear_models)
+models_query_hip_hop <-
+  data.frame(
+    model_names,
+    v_r_squared,
+    v_adj_r_squared,
+    v_sigma,
+    v_statistic,
+    v_p_value,
+    coefficient,
+    v_formula
+  )
+colnames(models_query_hip_hop) <-
+  c(
+    "model",
+    "r.squared",
+    "adj.r.squared",
+    "sigma",
+    "f.statistic",
+    "f.stat.p_value",
+    "Coefficients",
+    "Formula"
+  )
+
+#Checking the results with the highest adjusted-Rsquared
+models_query_hip_hop
+```
+
+```{r Query Models Table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# combine all models together as dataframe
+all_quary_data_models <-
+  rbind(models_query,
+        models_query_EDM,
+        models_query_K_pop,
+        models_query_hip_hop)
+
+# rename the model columns
+all_quary_data_models$model <-
+  c(
+    "model_1_1",
+    "model_2_1",
+    "model_3_1",
+    'model_4_1',
+    "model_5_1",
+    "model_6_1",
+    "model_7_1",
+    "model_8_1",
+    "model_9_1",
+    "model_10_1",
+    "model_11_1",
+    "model_12_1"
+  )
+all_quary_data_models
+```
+
+As the query data only present 20% of the total data set, the models' strength with the different variables can be determined. 
+
+When the sample size decreases, the variation around the means will grow while the mean itself will have little variance due to the Central limit theorem. The sampling distribution of the regression coefficients is normal and centered. As the sample size decreased, the F-statistics decreased as well. Due to this change, the relationships between the characteristics and the popularity score appear less strong due to p-values not meeting the significance level. 
+
+As can be seen, two models are accepted with the query data: model 5 and model 11. Both models relate to the specific genres: 
+
+* Model 5 indicates that danceability, energy, and loudness influence Electronic Dance Music's popularity score. 
+* Model 11 has more characteristics that influence hip hop's popularity score; the only characteristic that is not included is speechiness. 
+
+Both models do not indicate a high r-square score, but it is decided to pick one as the best-representing model. The r-squared number of model 5 is more considerable than model 11, but there is also a noteworthy difference in the coefficient numbers. The higher the absolute value of the beta coefficient, the stronger the effect; therefore, model 5 substantially influences the popularity score paralleling model 11. 
+
+This has led to the decision to choose model 5 as the best-representing model [(Statistics How To, 2016)](https://www.statisticshowto.com/standardized-beta-coefficient/#:~:text=A). 
+
+## 3.3 Testing Final Model
+As a final test, model 5 was rerun with a test data set to validate this model's accuracy. The results and interpretation are shown below. The coefficients p-values are accepted, and the p-value of the f-statistics meets the requirements. Therefore, this is considered to be the best model. 
+
+```{r Test Data Model 5, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+#Get specific data on the regression
+test_model <- glance(model_5_2)[1:5]
+names(test_model)[4] <- "f.statistic"
+names(test_model)[5] <- "f.stat.p_value"
+
+#Running the coefficient p-value test
+p_values_test <- broom::tidy(model_5_2)[5]
+output2 <- vector(mode = "character", length = 1)
+
+#if statement for test
+if (any(p_values_test > 0.05)) {
+  output2 <- ("Rejected")
+} else {
+  output2 <- ("Accepted")
+}
+
+#Assign formula to vector for dataframe.
+Formula <- c("popularity ~ danceability + energy + loudness")
+
+#Create dataframe
+test_model <- cbind(test_model, output2, Formula)
+
+#Adjust columns names for consistancy
+names(test_model)[names(test_model) == "output2"] <- "Coefficients"
+
+#Display the Model
+test_model
+```
+
+Looking at the results for the last model, it can be concluded that this is the only model with the highest adj.r.squared that returns with significant coefficients: 
+
+* Approximately 20% of the variance in the popularity score of the genre Electronic Dance Music can be explained by the characteristics; danceability, energy, and loudness.
+
+The sigma indicates that each popularity score could be off with 11 popularity score points, which is relatively high.
+The popularity score of this genre can be predicted with the following equation:  
+
+```{r Equation, echo=FALSE, message=FALSE, warning=FALSE}
+#Equation
+cat(
+  "Popularity Score = ",
+  coef(model_5_2)[1],
+  "+ (",
+  coef(model_5_2)[2],
+  " * danceability ) + (",
+  coef(model_5_2)[3],
+  "* energy ) + (",
+  coef(model_5_2)[4],
+  "* loudness )"
+)
+```
+
+On average: 
+
+* A one unit increase in danceability is associated with a value change of 19.35758 in the popularity score. 
+* A one unit increase in energy is associated with a value change of -20.35282 in the popularity score.
+* A one unit increase in loudness is associated with a value change of -2.066039 in the popularity score.
+
+# 4. Conclusion 
+## 4.1 Hypothesis Validation 
+Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected; therefore, the alternative hypothesis gets rejected. There are no models that include all song characteristics for K-pop, Electronic Dance Music, and Hip Hop. The percentage of variance that can be explained in these models' popularity score is too small to be accurate. 
+
+*Ho: The characteristics (instrumentalness, acousticness, liveness, danceability, energy, loudness, speechness, valence, tempo) of the genres "K-pop," "Hip Hop," and "Electronic Dance Music" are not statistically significantly related to song popularity score.*
+
+*Ha: The characteristics (acousticness, liveness, dancability, energy, loudness, speechness, valence, tempo) of the genres "K-pop," "Hip Hop," and "Electronic Dance Music" are statistically significantly related to song popularity score.*
+
+------
+
+However, an adjusted version of the null hypothesis can be rejected to some extend with the final model; <br>
+
+*Ho: The characteristics (danceability, energy, loudness) of the genre "Electronic Dance Music" are not statistically significantly related to song popularity score.*
+
+*Ha: The characteristics (danceability, energy, loudness) of the genre "Electronic Dance Music" are statistically significantly related to song popularity score.*
+
+The final model's statistics show that the f-statistic p-value and the coefficients' p-values meet the significance level of 5%. This model can explain 20% of the variance; however, it would still not accurately reflect the popularity score due to the high standard error.
+
+## 4.2 Insights
+When looking at the Exploratory Analysis and the modelling, there are a few insights that can be drawn from the data: 
+
+**1. Popular music genres do no necessarily have simular characteristics**
+
+* Looking at our modelling data, each genre K-Pop, Electronic Dance Music, and Hip Hop, correspond to models with different characteristics (even when this could only explain a small percentage in the popularity score variance). For instance, EDM tends to have higher rhythms and power, closely related to the loudness, danceability, and energy due to the higher beats per minute [(Aden Russell, nd)](https://www.edmprod.com/genres/). A combination of these characteristics makes total sense for this genre. 
+
+* This is also one reason why it might be difficult to predict one concrete popularity score as there are many variations in genres. The genre data set shows that songs do not necessarily fall under one genre but often fall under more than 3+ genres.  
+
+**2. Other factors might influence the popularity score**
+
+* As can be seen in the regressions data, the percentage of variance is relatively low. This could also be since many other factors are involved. When analyzing the top200 data, the popularity score did not necessarily show high numbers, concluding that the top200 just indicates a moment in time. 
+
+* There might be another reason why songs are at the top200 other than specific song characteristics, artists familiarity, and artist popularity. Two research studies, one by Stanford University's Computer Science department and one by Duke University's Statistical Science department, show that artist familiarity and artist hotness are essential factors in predicting the popularity of a song [(Pham, Kyauk, & Park, 2015;](http://cs229.stanford.edu/proj2015/140_report.pdf) [Shapiro, n.d.)](https://dukespace.lib.duke.edu/dspace/bitstream/handle/10161/9747/Shapiro_Thesis_Final.pdf?sequence=1&isAllowed=y)
+
+**3. Spotify can use its data to identify trends rather than predicting the popularity score**
+
+* When looking at the different regressions, it can be stated that the song characteristics in every model can only explain a small variance for the predicted popularity score regardless of the genre. This means that an accurate prediction will be hard to achieve, even when the model is statistically accepted or meet the significance level. 
+
+* This means that Spotify cannot deliver value to their stakeholders' artists by providing a secret formula for songs' success based on the popularity score. On the other hand, Spotify could recommend different characteristics that might be popular for a period if there is a curve in music taste, something that was seen in the exploratory analysis. This indicates that Spotify might have to explore options to make changes to meet this stakeholder's satisfaction.
+
+## 4.3 Further Research
+As there are no strong linear patterns for this dataset, which can be seen in the scatterplots and correlation matrix, there are plenty of possibilities to move further with this research. Different genres could be analyzed to see whether more vital models can be created to predict the popularity score. 
+
+Another possibility is to apply a transformation to the popularity score or song characteristics to make the data more fitted to linear regression. There might also be better predictive (machine learning) models that fit the data better than a linear model. These might give us different insights. </font>
