@@ -53,18 +53,13 @@ HA: The characteristics (acousticness, liveness, dancability, energy, loudness, 
 
 The data used for modelling does not have any clear linear patterns with the popularity score, indicating that the relationship between our dependent and independent variables is mostly non-linear. This has to be taken into account when fitting the best model.
 
-- Model 5 indicates that danceability, energy, and loudness influence the popularity score of Electronic Dance Music.
-- Model 11 has more characteristics that influence hip hop's popularity score; the only characteristic that is not included is speechiness.
-
-As a final test, model 5 was rerun with a test data set to validate this model's accuracy. This model had better statistics compared to model 11.
-
 | R.squared  | adj.r.squared |   sigma  |f.statistic | f.stat.p_value | Coefficients | Formula       |
 |------------| -------------:|---------:|-----------:|---------------:|-------------:| -------------:|
 |  0.2061116 |  0.1982253    | 11.00121 | 26.13537	 | 4.66821e-15    |	 Accepted    | 	popularity ~ danceability + energy + loudness |
 
 This model suggest the following equation: *Popularity Score =  74.98355 + ( 19.35758  * danceability ) + ( -20.35282 * energy ) + ( 2.066039 * loudness )*
 
-Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected.
+Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected, even with the best model.
 
 ### Insights
 - Popular music genres do not necessarily have similar characteristics.
