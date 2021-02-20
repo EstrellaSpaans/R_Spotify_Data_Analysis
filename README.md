@@ -20,11 +20,8 @@ We wanted to know whether a **song's popularity can be predicted based on song c
 **1. How have the characteristics of music changed over the last ten years?** (Line-Chart)
 - There are two characteristics: Speechiness and Danceability, that are increasing over the last decade.
 - The Instrumentalness has a clear trend of decreasing.
-- Four characteristics are fluctuating with changes of 0.1.
-- Both Energy and Valence show a positive change from 2016 to 2017.
 - Acousticness and Energy have a trend showing a significant decrease in the range of 0.1 change during 2018 to 2019.
 - Liveness is the only characteristic to be stable over the past decade.
-
 
 **2. Are they any correlations between the variables?** (Pearson Correlation Matrix)
 - A strong positive correlation between *Energy* and *Loudness* (+0.78).
