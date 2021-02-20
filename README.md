@@ -64,7 +64,7 @@ As a final test, model 5 was rerun with a test data set to validate this model's
 
 This model suggest the following equation: *Popularity Score =  74.98355 + ( 19.35758  * danceability ) + ( -20.35282 * energy ) + ( 2.066039 * loudness )*
 
-Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected; therefore, the alternative hypothesis gets rejected. There are no models that include all song characteristics for K-pop, Electronic Dance Music, and Hip Hop. The percentage of variance that can be explained in these models' popularity score is too small to be accurate.
+Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected.
 
 ### Insights
 - Popular music genres do not necessarily have similar characteristics.
