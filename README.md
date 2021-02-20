@@ -50,9 +50,9 @@ HA: The characteristics (acousticness, liveness, dancability, energy, loudness, 
 
 The data used for modelling does not have any clear linear patterns with the popularity score, indicating that the relationship between our dependent and independent variables is mostly non-linear. This has to be taken into account when fitting the best model.
 
-| R.squared  | adj.r.squared |   sigma  |f.statistic | f.stat.p_value | Coefficients | Formula       |
-|------------| -------------:|---------:|-----------:|---------------:|-------------:| -------------:|
-|  0.2061116 |  0.1982253    | 11.00121 | 26.13537	 | 4.66821e-15    |	 Accepted    | 	popularity ~ danceability + energy + loudness |
+| R.squared  | adj.r.squared |   sigma  |f.statistic | f.stat.p_value | Coefficients |
+|------------| -------------:|---------:|-----------:|---------------:|-------------:|
+|  0.2061116 |  0.1982253    | 11.00121 | 26.13537	 | 4.66821e-15    |	 Accepted    | 	
 
 This model suggest the following equation: *Popularity Score =  74.98355 + ( 19.35758  * danceability ) + ( -20.35282 * energy ) + ( 2.066039 * loudness )*
 
