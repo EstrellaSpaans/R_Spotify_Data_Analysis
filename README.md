@@ -59,7 +59,7 @@ The data used for modelling does not have any clear linear patterns with the pop
 
 This model suggest the following equation: *Popularity Score =  74.98355 + ( 19.35758  * danceability ) + ( -20.35282 * energy ) + ( 2.066039 * loudness )*
 
-Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected, even with the best model.
+Based on the different models chosen, it can be concluded that the null hypothesis cannot be rejected, even with the best fitted model.
 
 ### Insights
 - Popular music genres do not necessarily have similar characteristics.
