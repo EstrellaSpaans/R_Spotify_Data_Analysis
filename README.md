@@ -13,7 +13,7 @@ The data used was downloaded on [Kaggle](https://www.kaggle.com/yamaerenay/spoti
 ### Framing the Problem
 With 341 million paid subscribers, streaming accounted for 56 percent of the total music industry revenues in 2019. The trend started approximately in 2009 and has been growing since. The industry segment is forecasted to reach 1.3 billion users by 2030, of which 21% will be streaming music using their mobile phones (IFPI, 2020; Goldman Sachs, 2020).
 
-Spotify, one of the streaming platforms, has to deal with their stakeholders' dissatisfaction (artists), as they are interested in building good relationships. Without artists and listeners, the business model would fail. That is why we wanted to know whether a **song's popularity can be predicted based on song characteristics.** The more popularity a songs, the more penitential there is to generate revenue per stream. A "popularity recipe" would help Spotify establish a better relationship with record labels and artists and listeners who want to have likable music.
+We wanted to know whether a **song's popularity can be predicted based on song characteristics.** The more popularity a songs, the more penitential there is to generate revenue per stream for an artist on Spotify. A "popularity recipe" would help Spotify establish a better relationship with record labels and artists and listeners who want to have likable music.
 
 ### Exploratory Data Analysis
 
