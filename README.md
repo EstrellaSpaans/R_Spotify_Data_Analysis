@@ -13,11 +13,6 @@ The data used was downloaded on [Kaggle](https://www.kaggle.com/yamaerenay/spoti
 ### Framing the Problem
 With 341 million paid subscribers, streaming accounted for 56 percent of the total music industry revenues in 2019. The trend started approximately in 2009 and has been growing since. The industry segment is forecasted to reach 1.3 billion users by 2030, of which 21% will be streaming music using their mobile phones (IFPI, 2020; Goldman Sachs, 2020).
 
-However, artists are upset with the current climate of streaming platforms. They claim that;
-- streaming platforms are destroying album sales.
-- can generate more revenue from selling albums (digitally or physically)
-- revenue per stream is incredibly low (on average $1.70)
-
 Spotify, one of the streaming platforms, has to deal with their stakeholders' dissatisfaction (artists), as they are interested in building good relationships. Without artists and listeners, the business model would fail. That is why we wanted to know whether a **song's popularity can be predicted based on song characteristics.** The more popularity a songs, the more penitential there is to generate revenue per stream. A "popularity recipe" would help Spotify establish a better relationship with record labels and artists and listeners who want to have likable music.
 
 ### Exploratory Data Analysis
@@ -58,14 +53,6 @@ HA: The characteristics (acousticness, liveness, dancability, energy, loudness, 
 
 The data used for modelling does not have any clear linear patterns with the popularity score, indicating that the relationship between our dependent and independent variables is mostly non-linear. This has to be taken into account when fitting the best model.
 
-The approach that was taken was to test all possible combinations of all the characteristics. This had let to the creation of 511 different combinations. For all of these combinations, it was needed to test four different datasets: the training data and the training data set split by each genre. The 12 best models were chosen from all combinations.
-
-- *Training Data Set:* Model 1, Model 2, Model 3
-- *EDM Training Data:* Model 4, Model 5, Model 6
-- *K-Pop Training Data:* Model 7, Model 8, Model 9
-- *Hip Hop Training Data:* Model 10, Model 11, Model 12
-
-The models were then tested again with the dataset query_data, to discover only that model 5 and 11 are acceptable models;
 - Model 5 indicates that danceability, energy, and loudness influence the popularity score of Electronic Dance Music.
 - Model 11 has more characteristics that influence hip hop's popularity score; the only characteristic that is not included is speechiness.
 
@@ -83,7 +70,6 @@ Based on the different models chosen, it can be concluded that the null hypothes
 - Popular music genres do not necessarily have similar characteristics.
 - Other factors might influence the popularity score.
 - Spotify can use its data to identify trends rather than predicting the popularity score.
-
 
 ### Further Research 
 As there are no strong linear patterns for this dataset, which can be seen in the scatterplots and correlation matrix, there are plenty of possibilities to move further with this research. Different genres could be analyzed to see whether more vital models can be created to predict the popularity score.
